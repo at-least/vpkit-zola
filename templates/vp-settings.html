@@ -1,0 +1,14 @@
+{#- vp_settings: the settings for a page in the language lang, as JSON for
+    load_data: extra ([extra], over the theme's defaults in theme.toml)
+    with lang's entry in extra.locales (by Zola's language code) laid over
+    it key by key, as VitePress lays a locale's themeConfig over the
+    root's (JSON keeps a repeated key's last value). For base.html and the
+    search index's page. -#}
+{% component vp_settings(extra, lang) -%}
+{%- set index -%}{% for l in extra.locales %}{% if l.code == lang %}{{ loop.index0 }}{% endif %}{% endfor %}{%- endset -%}
+{%- if index -%}
+{{ extra | json_encode | regex_replace(pattern="[}]$", rep="") | safe }},{{ extra.locales[index | int] | json_encode | regex_replace(pattern="^[{]", rep="") | safe }}
+{%- else -%}
+{{ extra | json_encode | safe }}
+{%- endif -%}
+{%- endcomponent vp_settings %}

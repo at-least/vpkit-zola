@@ -1,9 +1,9 @@
 {#- vp_doc_page: VitePress's VPContent and VPDoc around the rendered
     markdown, with vpkit's names for their classes (vpkit/layout.css), and
     the aside with the outline (VPDocAside, VPDocAsideOutline) unless
-    has_aside is false. outline: the vp_outline list; doc_footer: the
-    vp_doc_footer below the markdown. -#}
-{% component vp_doc_page(html, has_sidebar, has_aside, outline, outline_label, doc_footer) -%}
+    has_aside is false. site: the settings (base.html); outline: the
+    vp_outline list; doc_footer: the vp_doc_footer below the markdown. -#}
+{% component vp_doc_page(html, site, has_sidebar, has_aside, outline, doc_footer) -%}
 <div class="vp-content{% if has_sidebar %} vp-content--has-sidebar{% endif %}" id="VPContent">
   <div class="vp-doc-page{% if has_sidebar %} vp-doc-page--has-sidebar{% endif %}{% if has_aside %} vp-doc-page--has-aside{% endif %}">
     <div class="vp-doc-page__container">
@@ -16,7 +16,7 @@
               <nav aria-labelledby="doc-outline-aria-label" class="vp-doc-aside-outline{% if outline is containing(pat='<li>') %} vp-doc-aside-outline--has-outline{% endif %}">
                 <div class="vp-doc-aside-outline__content">
                   <div class="vp-doc-aside-outline__outline-marker"></div>
-                  <div aria-level="2" class="vp-doc-aside-outline__outline-title" id="doc-outline-aria-label" role="heading">{{ outline_label }}</div>
+                  <div aria-level="2" class="vp-doc-aside-outline__outline-title" id="doc-outline-aria-label" role="heading">{{ site.outline_label }}</div>
                   {{ outline | safe }}
                 </div>
               </nav>
@@ -29,7 +29,7 @@
       <div class="vp-doc-page__content">
         <div class="vp-doc-page__content-container">
           <main class="vp-doc-page__main">
-            <div style="position:relative;" class="vp-doc"><div>{{ <vp_markdown html={html} /> }}</div></div>
+            <div style="position:relative;" class="vp-doc"><div>{{ <vp_markdown html={html} site={site} /> }}</div></div>
           </main>
           {{ doc_footer | safe }}
         </div>

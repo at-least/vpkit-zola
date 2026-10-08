@@ -1,4 +1,4 @@
 {% extends "base.html" %}
 {% block title %}{{ page.title }} | {{ config.title }}{% endblock title %}
 {% block description %}{{ page.description or config.description or "" }}{% endblock description %}
-{% block content %}{{ <vp_layout doc={page} site={config.extra} title={config.title} current={current_url} path={current_path} /> }}{% endblock content %}
+{% block content %}{{ <vp_layout doc={page} site={site} title={config.title} current={current_url} path={current_path} translations={translations} home={home} /> }}{% endblock content %}

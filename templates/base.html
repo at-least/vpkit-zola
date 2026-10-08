@@ -17,8 +17,28 @@
 {%- if config.markdown.insert_anchor_links != "right" -%}
 {{ throw(message=`vpkit-zola: set insert_anchor_links = "right" under [markdown]: VitePress's header anchors follow the heading text`) }}
 {%- endif -%}
+{#- the settings for this page's language (vp-settings.html) -#}
+{%- set settings -%}{{ <vp_settings extra={config.extra} lang={lang} /> }}{%- endset -%}
+{%- set site = load_data(literal=settings, format="json") -%}
+{#- VitePress's useLangs: this language's home (Zola's default language
+    at /, another at /<code>/), and each other locale's link to this page's
+    path in it. get_url drops a path's trailing slash unless told not to;
+    Zola's current_path has no leading slash on a language's home. -#}
+{%- set prefix = "/" if lang == config.default_language else "/" ~ lang ~ "/" -%}
+{%- set home = get_url(path=prefix, trailing_slash=true) -%}
+{%- set translation_links -%}
+{%- if site.code is defined -%}
+{%- set page_path = current_path if current_path is defined else prefix -%}
+{%- set rest = page_path | regex_replace(pattern="^/?", rep="/") | regex_replace(pattern="^" ~ prefix, rep="") -%}
+{%- for l in config.extra.locales -%}{%- if l.code != lang -%}
+{%- set target = ("/" if l.code == config.default_language else "/" ~ l.code ~ "/") ~ rest -%}
+{"text":{{ l.label | json_encode | safe }},"url":{{ get_url(path=target, trailing_slash=true) | json_encode | safe }},"lang":{{ (l.lang if l.lang is defined else l.code) | json_encode | safe }}{% if l.dir is defined %},"dir":{{ l.dir | json_encode | safe }}{% endif %}},
+{%- endif -%}{%- endfor -%}
+{%- endif -%}
+{%- endset -%}
+{%- set translations = load_data(literal="[" ~ (translation_links | regex_replace(pattern=",$", rep="")) ~ "]", format="json") -%}
 <!doctype html>
-<html lang="{{ lang }}" dir="ltr">
+<html lang="{{ site.lang if site.lang is defined else lang }}" dir="{{ site.dir if site.dir is defined else "ltr" }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -27,7 +47,7 @@
     <link rel="stylesheet" href="{{ get_url(path='vpkit-zola.css') }}">
     <link rel="preload" href="{{ get_url(path='fonts/inter-roman-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
     <script id="check-mac-os">document.documentElement.classList.toggle(`mac`,/Mac|iPhone|iPod|iPad/i.test(navigator.platform))</script>
-    {%- if config.extra.appearance %}
+    {%- if site.appearance %}
     <script id="check-dark-mode">(()=>{let e=localStorage.getItem(`vitepress-theme-appearance`)||`auto`,t=window.matchMedia(`(prefers-color-scheme: dark)`).matches;(!e||e===`auto`?t:e===`dark`)&&document.documentElement.classList.add(`dark`)})();</script>
     {%- endif %}
     <script src="{{ get_url(path='vpkit-zola.js') }}" defer></script>
@@ -36,13 +56,21 @@
     <div id="app">
       <div class="vp-layout">
         <span tabindex="-1"></span>
-        <a href="#VPContent" class="vp-skip-link visually-hidden">Skip to content</a>
+        <a href="#VPContent" class="vp-skip-link visually-hidden">{{ site.skip_to_content_label }}</a>
         <div class="vp-backdrop" hidden></div>
         {% block content %}{% endblock content %}
       </div>
     </div>
-    {%- if config.extra.search %}
-    {{ <vp_local_search_box site={config.extra} /> }}
+    {%- if site.search %}
+    {#- the index of the pages in this language (VitePress keeps one per
+        locale): content/vp-search.md, or vp-search.<code>.md -#}
+    {%- set stub = "vp-search.md" if lang == config.default_language else "vp-search." ~ lang ~ ".md" -%}
+    {%- set root = get_section(path="_index.md", lang=lang) -%}
+    {%- set found -%}{% for page in root.pages %}{% if page.relative_path == stub %}1{% endif %}{% endfor %}{%- endset -%}
+    {%- if not found -%}
+    {{ throw(message="vpkit-zola: search = true needs content/" ~ stub ~ " with template = \"vp-search-index.html\" in its front matter (README)") }}
+    {%- endif %}
+    {{ <vp_local_search_box site={site} index={get_url(path="@/vp-search.md", lang=lang)} /> }}
     {%- endif %}
   </body>
 </html>

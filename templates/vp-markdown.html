@@ -11,23 +11,30 @@
       label.
     - GitHub alerts keep their blockquote but take VitePress's classes and
       title.
+    site: the settings (base.html) with the texts VitePress's markdown
+    options give: alert_labels = { note, tip, important, warning, caution }
+    (its container labels) and code_copy_button = { tooltip_text,
+    copied_text }, each optional.
     - footnotes take markdown-it-footnote's classes, the backref its ↩︎ and
       the list its separator.
     - task lists, their items and headings take VitePress's classes and
       tabindex. -#}
-{% component vp_markdown(html) -%}
+{% component vp_markdown(html, site) -%}
+{%- set alerts = site.alert_labels -%}
+{%- set copy = site.code_copy_button -%}
+{%- set copy_button = `<button title="` ~ (copy.tooltip_text if copy.tooltip_text is defined else "Copy code") ~ `" data-copied="` ~ (copy.copied_text if copy.copied_text is defined else "Copied") ~ `" class="copy"></button>` -%}
 {{ html
   | replace(from=`<code data-lang="plain"`, to=`<code data-lang=""`)
   | regex_replace(pattern=`<span class="giallo-l" style="background-color:[^"]*">`, rep=`<span class="line highlighted">`)
   | replace(from=`<span class="giallo-l">`, to=`<span class="line">`)
   | regex_replace(pattern=`<span aria-hidden="true" class="giallo-ln" style="[^"]*">`, rep=`<span aria-hidden="true" class="giallo-ln">`)
-  | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(<span class="line[^"]*"><span aria-hidden="true" class="giallo-ln">.*?)</code></pre>`, rep=`<div class="language-${2} line-numbers-mode" dir="ltr"><button title="Copy code" data-copied="Copied" class="copy"></button><span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre><div class="line-numbers-wrapper" aria-hidden="true"></div></div>`)
-  | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(.*?)</code></pre>`, rep=`<div class="language-${2}" dir="ltr"><button title="Copy code" data-copied="Copied" class="copy"></button><span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre></div>`)
-  | replace(from=`<blockquote class="markdown-alert-note">`, to=`<blockquote class="note custom-block github-alert"><p class="custom-block-title">NOTE</p>`)
-  | replace(from=`<blockquote class="markdown-alert-tip">`, to=`<blockquote class="tip custom-block github-alert"><p class="custom-block-title">TIP</p>`)
-  | replace(from=`<blockquote class="markdown-alert-important">`, to=`<blockquote class="important custom-block github-alert"><p class="custom-block-title">IMPORTANT</p>`)
-  | replace(from=`<blockquote class="markdown-alert-warning">`, to=`<blockquote class="warning custom-block github-alert"><p class="custom-block-title">WARNING</p>`)
-  | replace(from=`<blockquote class="markdown-alert-caution">`, to=`<blockquote class="caution custom-block github-alert"><p class="custom-block-title">CAUTION</p>`)
+  | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(<span class="line[^"]*"><span aria-hidden="true" class="giallo-ln">.*?)</code></pre>`, rep=`<div class="language-${2} line-numbers-mode" dir="ltr">` ~ copy_button ~ `<span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre><div class="line-numbers-wrapper" aria-hidden="true"></div></div>`)
+  | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(.*?)</code></pre>`, rep=`<div class="language-${2}" dir="ltr">` ~ copy_button ~ `<span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre></div>`)
+  | replace(from=`<blockquote class="markdown-alert-note">`, to=`<blockquote class="note custom-block github-alert"><p class="custom-block-title">` ~ (alerts.note if alerts.note is defined else "NOTE") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-tip">`, to=`<blockquote class="tip custom-block github-alert"><p class="custom-block-title">` ~ (alerts.tip if alerts.tip is defined else "TIP") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-important">`, to=`<blockquote class="important custom-block github-alert"><p class="custom-block-title">` ~ (alerts.important if alerts.important is defined else "IMPORTANT") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-warning">`, to=`<blockquote class="warning custom-block github-alert"><p class="custom-block-title">` ~ (alerts.warning if alerts.warning is defined else "WARNING") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-caution">`, to=`<blockquote class="caution custom-block github-alert"><p class="custom-block-title">` ~ (alerts.caution if alerts.caution is defined else "CAUTION") ~ `</p>`)
   | replace(from=`<sup class="footnote-reference"`, to=`<sup class="footnote-ref"`)
   | regex_replace(pattern=`<a href="([^"]*#fr-[^"]*)">↩</a>`, rep=`<a href="${1}" class="footnote-backref">&#8617;&#65038;</a>`)
   | regex_replace(pattern=`<li id="(fn-[^"]*)">`, rep=`<li id="${1}" class="footnote-item">`)

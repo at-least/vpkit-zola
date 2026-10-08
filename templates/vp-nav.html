@@ -4,8 +4,12 @@
     in the browser is rendered hidden here, for the theme's script to show:
     the nav screen, and the extra menu (…) with what no longer fits the bar.
     title: config.title; current, path: the page's current_url and
-    current_path; is_home: a home page's bar (transparent at the top). -#}
-{% component vp_nav(site, title, current, path, has_sidebar, has_local_nav, is_home) -%}
+    current_path; is_home: a home page's bar (transparent at the top);
+    translations: the links to the page in the other languages, each
+    { text, url, lang, dir? } (base.html), under the current one's label;
+    home: this language's home, where the title links. -#}
+{% component vp_nav(site, title, current, path, has_sidebar, has_local_nav, is_home, translations, home) -%}
+{%- set has_translations = translations | length > 0 and site.label is defined -%}
 {%- if site.appearance != true and site.appearance != false -%}
 {{ throw(message="vpkit-zola: appearance under [extra] is true or false") }}
 {%- endif -%}
@@ -17,19 +21,14 @@
     <div class="vp-nav-bar__wrapper"><div class="vp-nav-bar__container">
       <div class="vp-nav-bar__title"><div class="vp-nav-bar-title{% if has_sidebar %} vp-nav-bar-title--has-sidebar{% endif %}">
         {%- set site_title = site.site_title if site.site_title is defined else title -%}
-        <a href="{{ get_url(path='/') }}/"{% if site_title %} title="{{ site_title | striptags | trim }}"{% endif %} class="vp-nav-bar-title__title">
+        <a href="{{ home }}"{% if site_title %} title="{{ site_title | striptags | trim }}"{% endif %} class="vp-nav-bar-title__title">
         {%- if site.logo is defined %}{{ <vp_image image={site.logo} class="vp-nav-bar-title__logo" /> }}{% endif -%}
         {%- if site_title %}<span>{{ site_title | safe }}</span>{% endif -%}
       </a></div></div>
       <div class="vp-nav-bar__content"><div class="vp-nav-bar__content-body">
         <div class="vp-nav-bar-search vp-nav-bar__search">
           {%- if site.search -%}
-          {%- set root = get_section(path="_index.md") -%}
-          {%- set stub -%}{% for page in root.pages %}{% if page.relative_path == "vp-search.md" %}1{% endif %}{% endfor %}{%- endset -%}
-          {%- if not stub -%}
-          {{ throw(message="vpkit-zola: search = true needs content/vp-search.md with template = \"vp-search-index.html\" in its front matter (README)") }}
-          {%- endif -%}
-          <button type="button" aria-label="{{ site.search_button_text }}" aria-keyshortcuts="/ control+k meta+k" data-index="{{ get_url(path='@/vp-search.md') }}" class="vp-nav-bar-search-button"><span aria-hidden="true" class="vpi-search"></span><span class="vp-nav-bar-search-button__text">{{ site.search_button_text }}</span><span aria-hidden="true" class="vp-nav-bar-search-button__keys"><kbd class="vp-nav-bar-search-button__key-mod"></kbd><kbd class="vp-nav-bar-search-button__key-k"></kbd></span></button>
+          <button type="button" aria-label="{{ site.search_button_text }}" aria-keyshortcuts="/ control+k meta+k" class="vp-nav-bar-search-button"><span aria-hidden="true" class="vpi-search"></span><span class="vp-nav-bar-search-button__text">{{ site.search_button_text }}</span><span aria-hidden="true" class="vp-nav-bar-search-button__keys"><kbd class="vp-nav-bar-search-button__key-mod"></kbd><kbd class="vp-nav-bar-search-button__key-k"></kbd></span></button>
           {%- endif -%}
         </div>
         {%- if site.nav | length > 0 %}
@@ -42,6 +41,9 @@
           {%- endfor -%}
         </ul></nav>
         {%- endif %}
+        {%- if has_translations %}
+        <div class="vp-flyout vp-nav-translations vp-nav-translations--bar vp-nav-bar__translations"><button type="button" aria-expanded="false" aria-controls="vp-nav-translations" aria-label="{{ site.lang_menu_label }}" class="vp-flyout__button"><span class="vp-flyout__text"><span aria-hidden="true" class="vpi-languages vp-flyout__option-icon"></span><span aria-hidden="true" class="vpi-chevron-down vp-flyout__text-icon"></span></span></button><div id="vp-nav-translations" class="vp-flyout__menu"><div class="vp-menu"><p class="vp-nav-translations__title">{{ site.label }}</p><ul>{{ <vp_translation_links links={translations} /> }}</ul></div></div></div>
+        {%- endif %}
         {%- if site.appearance %}
         <div class="vp-nav-appearance vp-nav-appearance--bar vp-nav-bar__appearance">{{ <vp_switch_appearance site={site} labelled_by="" /> }}</div>
         {%- endif %}
@@ -53,6 +55,9 @@
           <div id="vp-nav-bar-extra" class="vp-flyout__menu"><div class="vp-menu">
             {%- if site.nav | length > 0 %}
             <ul class="vp-menu__group" hidden>{{ <vp_menu_items items={site.nav} current={current} path={path} /> }}</ul>
+            {%- endif %}
+            {%- if has_translations %}
+            <div class="vp-nav-translations vp-nav-translations__group vp-menu__group" hidden><p class="vp-nav-translations__title">{{ site.label }}</p><ul>{{ <vp_translation_links links={translations} /> }}</ul></div>
             {%- endif %}
             {%- if site.appearance %}
             <div class="vp-menu__group" hidden><div class="vp-nav-appearance vp-nav-appearance__menu-appearance"><p id="vp-nav-bar-extra-appearance" class="vp-nav-appearance__text">{{ site.dark_mode_switch_label }}</p>{{ <vp_switch_appearance site={site} labelled_by="vp-nav-bar-extra-appearance" /> }}</div></div>
@@ -79,6 +84,13 @@
         {%- endfor -%}
       </ul></nav>
       {%- endif %}
+      {%- if has_translations %}
+      <div class="vp-nav-translations vp-nav-translations--screen vp-nav-screen__translations"><button type="button" aria-expanded="false" aria-controls="vp-nav-screen-translations" class="vp-nav-translations__title"><span aria-hidden="true" class="vpi-languages vp-nav-translations__icon vp-nav-translations__lang"></span> {{ site.label }} <span aria-hidden="true" class="vpi-chevron-down vp-nav-translations__icon vp-nav-translations__chevron"></span></button><ul id="vp-nav-screen-translations" style="display: none;" class="vp-nav-translations__list">
+        {%- for link in translations -%}
+        <li><a href="{{ link.url }}" rel="alternate" lang="{{ link.lang }}" hreflang="{{ link.lang }}"{% if link.dir is defined %} dir="{{ link.dir }}"{% endif %} class="vp-nav-translations__link">{{ link.text }}</a></li>
+        {%- endfor -%}
+      </ul></div>
+      {%- endif %}
       {%- if site.appearance %}
       <div class="vp-nav-appearance vp-nav-appearance--screen vp-nav-screen__appearance"><p id="vp-nav-screen-appearance" class="vp-nav-appearance__text">{{ site.dark_mode_switch_label }}</p>{{ <vp_switch_appearance site={site} labelled_by="vp-nav-screen-appearance" /> }}</div>
       {%- endif %}
@@ -89,6 +101,13 @@
   </div>
 </header>
 {%- endcomponent vp_nav %}
+
+{#- VPNavTranslations' links in a menu: VPMenuLink, with the language -#}
+{% component vp_translation_links(links) -%}
+{%- for link in links -%}
+<li class="vp-menu-link"><a href="{{ link.url }}" rel="alternate" lang="{{ link.lang }}" hreflang="{{ link.lang }}"{% if link.dir is defined %} dir="{{ link.dir }}"{% endif %} class="vp-menu-link__link"><span dir="auto">{{ link.text }}</span></a></li>
+{%- endfor -%}
+{%- endcomponent vp_translation_links %}
 
 {#- '1' when a nav item is active, as VitePress's isChildActive: a link by
     its active_match (a regex on the page's current_path) or else by being
@@ -187,6 +206,8 @@
 {#- VPLocalSearchBox's markup, at the end of the body for the script to
     show over the page (Vue renders it into the body on opening); its
     labels from the site's [extra] -#}
-{% component vp_local_search_box(site) -%}
-<template id="vp-local-search-box"><div role="button" aria-expanded="true" aria-haspopup="listbox" aria-labelledby="localsearch-label" class="vp-local-search-box"><div class="vp-local-search-box__backdrop"></div><div class="vp-local-search-box__shell"><form class="vp-local-search-box__search-bar"><label title="{{ site.search_button_text }}" id="localsearch-label" for="localsearch-input"><span aria-hidden="true" class="vpi-search vp-local-search-box__search-icon vp-local-search-box__local-search-icon"></span></label><div class="vp-local-search-box__search-actions vp-local-search-box__before"><button class="vp-local-search-box__back-button" title="Close search"><span class="vpi-arrow-left vp-local-search-box__local-search-icon"></span></button></div><input aria-autocomplete="both" aria-labelledby="localsearch-label" autocapitalize="off" autocomplete="off" autocorrect="off" class="vp-local-search-box__search-input" id="localsearch-input" enterkeyhint="go" maxlength="64" placeholder="{{ site.search_button_text }}" spellcheck="false" type="search"><div class="vp-local-search-box__search-actions"><span class="vp-local-search-box__search-loading" aria-live="polite"></span><button class="vp-local-search-box__toggle-layout-button" type="button" title="Display detailed list"><span class="vpi-layout-list vp-local-search-box__local-search-icon"></span></button><button class="vp-local-search-box__clear-button" type="reset" title="Reset search"><span class="vpi-delete vp-local-search-box__local-search-icon"></span></button></div></form><ul aria-busy="false" class="vp-local-search-box__results"></ul><div class="vp-local-search-box__search-keyboard-shortcuts"><span><kbd aria-label="up arrow"><span class="vpi-arrow-up vp-local-search-box__navigate-icon"></span></kbd><kbd aria-label="down arrow"><span class="vpi-arrow-down vp-local-search-box__navigate-icon"></span></kbd> to navigate</span><span><kbd aria-label="enter"><span class="vpi-corner-down-left vp-local-search-box__navigate-icon"></span></kbd> to select</span><span><kbd aria-label="escape">esc</kbd> to close</span></div></div></div></template>
+{% component vp_local_search_box(site, index) -%}
+{#- VitePress's local search translations (modal), each optional -#}
+{%- set box = site.search_box -%}
+<template id="vp-local-search-box" data-index="{{ index }}" data-no-results-text="{{ box.no_results_text if box.no_results_text is defined else "No results for" }}"><div role="button" aria-expanded="true" aria-haspopup="listbox" aria-labelledby="localsearch-label" class="vp-local-search-box"><div class="vp-local-search-box__backdrop"></div><div class="vp-local-search-box__shell"><form class="vp-local-search-box__search-bar"><label title="{{ site.search_button_text }}" id="localsearch-label" for="localsearch-input"><span aria-hidden="true" class="vpi-search vp-local-search-box__search-icon vp-local-search-box__local-search-icon"></span></label><div class="vp-local-search-box__search-actions vp-local-search-box__before"><button class="vp-local-search-box__back-button" title="{{ box.back_button_title if box.back_button_title is defined else "Close search" }}"><span class="vpi-arrow-left vp-local-search-box__local-search-icon"></span></button></div><input aria-autocomplete="both" aria-labelledby="localsearch-label" autocapitalize="off" autocomplete="off" autocorrect="off" class="vp-local-search-box__search-input" id="localsearch-input" enterkeyhint="go" maxlength="64" placeholder="{{ site.search_button_text }}" spellcheck="false" type="search"><div class="vp-local-search-box__search-actions"><span class="vp-local-search-box__search-loading" aria-live="polite"></span><button class="vp-local-search-box__toggle-layout-button" type="button" title="{{ box.display_details if box.display_details is defined else "Display detailed list" }}"><span class="vpi-layout-list vp-local-search-box__local-search-icon"></span></button><button class="vp-local-search-box__clear-button" type="reset" title="{{ box.reset_button_title if box.reset_button_title is defined else "Reset search" }}"><span class="vpi-delete vp-local-search-box__local-search-icon"></span></button></div></form><ul aria-busy="false" class="vp-local-search-box__results"></ul><div class="vp-local-search-box__search-keyboard-shortcuts"><span><kbd aria-label="{{ box.navigate_up_key_aria_label if box.navigate_up_key_aria_label is defined else "up arrow" }}"><span class="vpi-arrow-up vp-local-search-box__navigate-icon"></span></kbd><kbd aria-label="{{ box.navigate_down_key_aria_label if box.navigate_down_key_aria_label is defined else "down arrow" }}"><span class="vpi-arrow-down vp-local-search-box__navigate-icon"></span></kbd> {{ box.navigate_text if box.navigate_text is defined else "to navigate" }}</span><span><kbd aria-label="{{ box.select_key_aria_label if box.select_key_aria_label is defined else "enter" }}"><span class="vpi-corner-down-left vp-local-search-box__navigate-icon"></span></kbd> {{ box.select_text if box.select_text is defined else "to select" }}</span><span><kbd aria-label="{{ box.close_key_aria_label if box.close_key_aria_label is defined else "escape" }}">esc</kbd> {{ box.close_text if box.close_text is defined else "to close" }}</span></div></div></div></template>
 {%- endcomponent vp_local_search_box %}

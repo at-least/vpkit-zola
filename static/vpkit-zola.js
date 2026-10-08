@@ -325,7 +325,7 @@ if (navBar) {
   const menu = navBar.querySelector('.vp-nav-menu--bar');
   const items = menu ? [...menu.querySelectorAll(':scope > .vp-nav-menu__list > li')] : [];
   const clusters = {
-    translations: null,
+    translations: navBar.querySelector('.vp-nav-bar__translations'),
     appearance: navBar.querySelector('.vp-nav-bar__appearance'),
     socialLinks: navBar.querySelector('.vp-nav-bar__social-links'),
   };
@@ -334,6 +334,7 @@ if (navBar) {
   const overflowItems = extraMenu.querySelector(':scope > ul.vp-menu__group');
   const overflowLinks = overflowItems ? [...overflowItems.children] : [];
   const extraGroups = {
+    translations: extraMenu.querySelector('.vp-nav-translations__group'),
     appearance: extraMenu.querySelector('.vp-nav-appearance__menu-appearance')?.parentElement,
     socialLinks: extraMenu.querySelector('.vp-nav-bar-extra__social-links')?.parentElement,
   };
@@ -415,7 +416,7 @@ if (navBar) {
       overflowLinks.forEach((li, i) => render(li, i >= result.visibleItemCount));
     }
     let hasContent = overflowCount > 0;
-    for (const unit of ['appearance', 'socialLinks']) {
+    for (const unit of UNITS) {
       if (!extraGroups[unit]) continue;
       render(extraGroups[unit], !result[unit]);
       hasContent ||= !result[unit];
@@ -444,7 +445,8 @@ if (navBar) {
   // Layout.vue: below 48rem the hamburger opens the nav screen, fading in,
   // with the page locked and what it covers inert. Escape closes it (the
   // focus back on the hamburger), as do its links and the window turning
-  // 48rem wide. Its groups open in place, all closed each time it opens.
+  // 48rem wide. Its groups and the languages open in place, all closed
+  // each time it opens.
   const hamburger = navBar.querySelector('.vp-nav-bar-hamburger');
   const screen = document.getElementById('VPNavScreen');
   const covered = document.querySelectorAll('.vp-skip-link, .vp-local-nav, .vp-sidebar, #VPContent, .vp-footer');
@@ -457,6 +459,14 @@ if (navBar) {
     group.querySelector(':scope > .vp-nav-menu-group__items').style.display = open ? '' : 'none';
   }
 
+  // VPNavTranslations.vue's accordion
+  const screenTranslations = screen.querySelector('.vp-nav-translations--screen');
+  function setTranslationsOpen(open) {
+    screenTranslations.classList.toggle('vp-nav-translations--open', open);
+    screenTranslations.querySelector(':scope > button').setAttribute('aria-expanded', String(open));
+    screenTranslations.querySelector(':scope > ul').style.display = open ? '' : 'none';
+  }
+
   function setScreen(open) {
     if (open === isScreenOpen) return;
     isScreenOpen = open;
@@ -466,6 +476,7 @@ if (navBar) {
     for (const el of covered) el.inert = open;
     if (open) {
       for (const group of screen.querySelectorAll('.vp-nav-menu-group--open')) setGroupOpen(group, false);
+      if (screenTranslations) setTranslationsOpen(false);
       transition(screen, 'vp-nav-screen--fade', true);
       unlockScreen ??= lockScroll();
     } else {
@@ -480,7 +491,10 @@ if (navBar) {
   screen.addEventListener('click', (e) => {
     const button = e.target.closest('.vp-nav-menu-group__button');
     if (button) return setGroupOpen(button.parentElement, button.getAttribute('aria-expanded') !== 'true');
-    if (e.target.closest('.vp-nav-menu-link, .vp-menu-link__link')) setScreen(false);
+    const languages = e.target.closest('.vp-nav-translations--screen > button');
+    if (languages) return setTranslationsOpen(languages.getAttribute('aria-expanded') !== 'true');
+    // a link leaving the page: VitePress closes the screen as the route changes
+    if (e.target.closest('.vp-nav-menu-link, .vp-menu-link__link, .vp-nav-translations__link')) setScreen(false);
   });
   window.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape' || !isScreenOpen) return;
@@ -490,6 +504,19 @@ if (navBar) {
   isEngineActive.addEventListener('change', () => {
     if (isEngineActive.matches) setScreen(false);
   });
+}
+
+// composables/langs.ts resolveLocaleLink: a language's link to this page
+// carries the page's query and hash, kept as they change (the router's
+// syncRouteQueryAndHash)
+const translationLinks = [...document.querySelectorAll('.vp-nav-translations a[hreflang]')].map((a) => [a, a.getAttribute('href')]);
+if (translationLinks.length) {
+  const syncQueryAndHash = () => {
+    for (const [a, href] of translationLinks) a.setAttribute('href', href + location.search + decodeURIComponent(location.hash));
+  };
+  window.addEventListener('hashchange', syncQueryAndHash);
+  window.addEventListener('popstate', syncQueryAndHash);
+  syncQueryAndHash();
 }
 
 // ---- the sidebar -------------------------------------------------------------
@@ -721,11 +748,12 @@ if (outline) {
 
 // VPNavBarSearch.vue: its button, Ctrl/⌘+K and / (outside a field) open
 // VPLocalSearchBox, static/vpkit-zola-search.js, loaded the first time
-const searchButton = document.querySelector('.vp-nav-bar-search-button[data-index]');
+const searchButton = document.querySelector('.vp-nav-bar-search-button');
 if (searchButton) {
   const searchModule = new URL('vpkit-zola-search.js', document.currentScript.src).href;
+  const index = document.getElementById('vp-local-search-box').dataset.index;
   let loaded = null;
-  const openSearch = () => (loaded ??= import(searchModule)).then((m) => m.open(searchButton.dataset.index, lockScroll));
+  const openSearch = () => (loaded ??= import(searchModule)).then((m) => m.open(index, lockScroll));
   const isEditingContent = (e) => e.target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName);
   searchButton.addEventListener('click', openSearch);
   window.addEventListener('keydown', (e) => {

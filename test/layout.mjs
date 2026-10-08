@@ -92,9 +92,11 @@ const checks = [
   },
   // the navbar where VitePress lays it out differently: on a phone, then
   // where the parity site's bar (with the search button) has no room for
-  // three menu items, the appearance switch and the social links (768, and
-  // 960 beside the sidebar), for two items and both (880), one item and
-  // both (1120), both (1280), the social links (1360), and where all fits
+  // three menu items, the language menu, the appearance switch and the
+  // social links (768, and 960 beside the sidebar), for two items and those
+  // (880), one item and those (1120), those (1280), the appearance switch
+  // and the social links (1360), the social links (1440: the layout grows
+  // no wider; the home page's bar fits all of it, the Chinese pages' too)
   {
     name: 'navbar',
     ...NAV_PAGE,
@@ -123,7 +125,7 @@ const checks = [
   {
     name: 'navbar, extra menu open',
     ...NAV_PAGE,
-    widths: [768, 1120, 1280, 1360],
+    widths: [768, 1120, 1280, 1360, 1440],
     // a hover: after a click the pointer moves away, which closes a flyout
     steps: [['hover', '.VPNavBarExtra > .button', '.vp-nav-bar-extra > .vp-flyout__button']],
     expect: [shown('.VPNavBarExtra > .menu'), shown('.vp-nav-bar-extra > .vp-flyout__menu')],
@@ -136,6 +138,99 @@ const checks = [
     steps: [['click', '.VPNavBarHamburger', '.vp-nav-bar-hamburger']],
     expect: [shown('#VPNavScreen'), shown('#VPNavScreen')],
     pairs: [['.VPNav', '.vp-nav']],
+  },
+  // the language menu: open in the bar, and in the nav screen
+  {
+    name: 'navbar, languages open',
+    ...NAV_PAGE,
+    widths: [1360, 1440],
+    steps: [['hover', '.VPNavBarTranslations > .button', '.vp-nav-bar__translations > .vp-flyout__button']],
+    expect: [shown('.VPNavBarTranslations > .menu'), shown('.vp-nav-bar__translations > .vp-flyout__menu')],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  {
+    name: 'nav screen, languages open',
+    ...NAV_PAGE,
+    widths: [375, 640],
+    steps: [
+      ['click', '.VPNavBarHamburger', '.vp-nav-bar-hamburger'],
+      ['click', '.VPNavScreenTranslations > .title', '.vp-nav-translations--screen > .vp-nav-translations__title'],
+    ],
+    expect: [
+      "document.querySelector('.VPNavScreenTranslations').classList.contains('open') && document.querySelector('.VPNavScreenTranslations .list').checkVisibility()",
+      "document.querySelector('.vp-nav-translations--screen').classList.contains('vp-nav-translations--open') && document.querySelector('.vp-nav-translations__list').checkVisibility()",
+    ],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  // a page in the Chinese locale: its own labels, nav (three items, so the
+  // bar keeps the language menu (768), the appearance switch too (840),
+  // all (920), not the social links beside the sidebar (1000)) and
+  // sidebar; its home page and its search
+  {
+    name: 'Chinese page',
+    vitepress: '/zh/guide/getting-started.html',
+    path: '/zh/guide/getting-started/',
+    widths: [375, 768, 840, 920, 1000, 1280, 1440],
+    pairs: [
+      ['.VPNav', '.vp-nav'],
+      ['.VPLocalNav', '.vp-local-nav'],
+      ['.VPSidebar', '.vp-sidebar'],
+      ['.VPContent', '#VPContent'],
+      ['.VPFooter', '.vp-footer'],
+    ],
+  },
+  {
+    name: 'Chinese page, extra menu open',
+    vitepress: '/zh/guide/getting-started.html',
+    path: '/zh/guide/getting-started/',
+    widths: [768, 840],
+    steps: [['hover', '.VPNavBarExtra > .button', '.vp-nav-bar-extra > .vp-flyout__button']],
+    expect: [shown('.VPNavBarExtra > .menu'), shown('.vp-nav-bar-extra > .vp-flyout__menu')],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  {
+    name: 'Chinese home',
+    vitepress: '/zh/index.html',
+    path: '/zh/',
+    widths: [375, 768, 840, 920, 1280],
+    pairs: [
+      ['.VPNav', '.vp-nav'],
+      ['.VPContent', '#VPContent'],
+      ['.VPFooter', '.vp-footer'],
+    ],
+  },
+  {
+    name: 'Chinese search box',
+    vitepress: '/zh/guide/getting-started.html',
+    path: '/zh/guide/getting-started/',
+    widths: [375, 1280],
+    steps: [
+      ['click', '.VPNavBarSearchButton', '.vp-nav-bar-search-button'],
+      ['type', '安装', '安装'],
+      [
+        'wait',
+        "document.querySelectorAll('.VPLocalSearchBox .result').length === 3",
+        "document.querySelectorAll('.vp-local-search-box__result').length === 3",
+      ],
+    ],
+    expect: [
+      "document.querySelectorAll('.VPLocalSearchBox .result').length === 3",
+      "document.querySelectorAll('.vp-local-search-box__result').length === 3",
+    ],
+    pairs: [['.VPLocalSearchBox', '.vp-local-search-box']],
+  },
+  {
+    name: 'Chinese search box, no results',
+    vitepress: '/zh/guide/getting-started.html',
+    path: '/zh/guide/getting-started/',
+    widths: [375, 1280],
+    steps: [
+      ['click', '.VPNavBarSearchButton', '.vp-nav-bar-search-button'],
+      ['type', 'xyzzy', 'xyzzy'],
+      ['wait', "!!document.querySelector('.VPLocalSearchBox .no-results')", "!!document.querySelector('.vp-local-search-box__no-results')"],
+    ],
+    expect: [shown('.VPLocalSearchBox .no-results'), shown('.vp-local-search-box__no-results')],
+    pairs: [['.VPLocalSearchBox', '.vp-local-search-box']],
   },
   // the doc footer: the edit link, the last updated time, the pages
   // before and after, on a page in the sidebar, on one outside it (no
@@ -325,14 +420,14 @@ const known = [
     reason: "the spacer takes the aside's free height, which vitepress.dev's Carbon ads share below it",
   },
   {
-    check: /^(aside|local nav, outline open|nav|doc footer|home|page without|not found)/,
+    check: /^(aside|local nav, outline open|nav|doc footer|home|page without|not found|Chinese)/,
     element: /./,
     prop: /^(box y|box height|height|bottom|top|transform)$/,
     within: 0.25,
     reason: "VitePress's minified CSS rounds line heights to six digits (2.2857143 to 2.28571, 1.3333333 to 1.33333), so each such line (the outline's, the menus', a heading's, the doc footer's, the hero's) is 1/64px shorter there and what follows sits higher, or what is centered on it (the hero image's translate(-50%)) moves; vpkit keeps the source values",
   },
   {
-    check: /^(nav|home|not found)/,
+    check: /^(nav|home|not found|Chinese)/,
     element: / > img\[0\]$/,
     prop: /^vertical-align$/,
     reason: "Tailwind's preflight gives an img vertical-align: middle where VitePress leaves baseline; the logo is a flex item, which vertical-align does not move",
@@ -367,7 +462,8 @@ async function routes(context, site) {
 // let transitions finish and the navbar's overflow engine decide (it
 // measures in animation frames): for three frames in a row, no element has
 // an enter or leave class, nothing animates, the sidebar's groups have their
-// caret transitions back and the header has not changed
+// caret transitions back (300ms after mounting, on both sides) and the
+// header has not changed
 async function settle(page) {
   await page.evaluate(
     () =>
@@ -376,7 +472,7 @@ async function settle(page) {
         let stable = 0;
         const tick = () => {
           const busy =
-            !!document.querySelector('[class*="-enter-"], [class*="-leave-"], .vp-sidebar-group--no-transition') ||
+            !!document.querySelector('[class*="-enter-"], [class*="-leave-"], .vp-sidebar-group--no-transition, .VPSidebar .group.no-transition') ||
             document.getAnimations().some((a) => a.playState === 'running');
           const now = document.querySelector('header')?.outerHTML ?? '';
           stable = !busy && now === last ? stable + 1 : 0;

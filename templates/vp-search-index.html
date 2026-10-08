@@ -2,8 +2,9 @@
     localSearchPlugin, which indexes each page's rendered markdown by
     section). A site turns search on with search = true under [extra] and
     this page: content/vp-search.md, front matter template =
-    "vp-search-index.html" (README). It holds, in a JSON script, every
-    page's and section's markdown as the theme renders it (vp_markdown),
+    "vp-search-index.html" (README), and vp-search.<code>.md for each other
+    language. It holds, in a JSON script, every page's and section's in its
+    language, their markdown as the theme renders it (vp_markdown),
     reduced to its headings with their anchors and its text: the script
     splits that into sections and indexes them as VitePress does. A page
     with search = false in its [extra] stays out, as with VitePress's
@@ -12,32 +13,38 @@
 <html lang="{{ lang }}">
 <head><meta charset="utf-8"><meta name="robots" content="noindex"><title>{{ config.title }}</title></head>
 <body>
-<script type="application/json" id="vp-search-index">[{{ <vp_search_docs section={get_section(path="_index.md")} /> }}null]</script>
+{%- set settings -%}{{ <vp_settings extra={config.extra} lang={lang} /> }}{%- endset -%}
+{%- set site = load_data(literal=settings, format="json") -%}
+{%- set suffix = "" if lang == config.default_language else "." ~ lang ~ ".md" %}
+<script type="application/json" id="vp-search-index">[{{ <vp_search_docs section={get_section(path="_index.md", lang=lang)} lang={lang} suffix={suffix} site={site} /> }}null]</script>
 </body>
 </html>
 
 {#- a section's pages, the section itself and its subsections, as JSON
-    objects each followed by a comma: url, file (under content/: the
-    order VitePress indexes in) and html -#}
-{% component vp_search_docs(section) -%}
+    objects each followed by a comma: url, file (its path under content/,
+    without the language's suffix, .<code>.md: the order VitePress indexes
+    a locale's pages in) and html. lang: the page's; inside a component
+    get_section takes a section in another language for the default one's
+    unless told the language. site: the settings for it (vp_settings). -#}
+{% component vp_search_docs(section, lang, suffix, site) -%}
 {%- if not (section.extra.search is defined and section.extra.search == false) -%}
-{{ <vp_search_doc doc={section} /> }}
+{{ <vp_search_doc doc={section} suffix={suffix} site={site} /> }}
 {%- endif -%}
 {%- for page in section.pages -%}
 {%- if not (page.extra.search is defined and page.extra.search == false) -%}
-{{ <vp_search_doc doc={page} /> }}
+{{ <vp_search_doc doc={page} suffix={suffix} site={site} /> }}
 {%- endif -%}
 {%- endfor -%}
 {%- for path in section.subsections -%}
-{{ <vp_search_docs section={get_section(path=path)} /> }}
+{{ <vp_search_docs section={get_section(path=path, lang=lang)} lang={lang} suffix={suffix} site={site} /> }}
 {%- endfor -%}
 {%- endcomponent vp_search_docs %}
 
 {#- one doc: its markdown with every tag gone but its headings and their
     anchors (the text is what VitePress indexes; VitePress finds sections
     by an anchored heading) -#}
-{% component vp_search_doc(doc) -%}
-{%- set html -%}{{ <vp_markdown html={doc.content} /> }}{%- endset -%}
+{% component vp_search_doc(doc, suffix, site) -%}
+{%- set html -%}{{ <vp_markdown html={doc.content} site={site} /> }}{%- endset -%}
 {%- set html = html
   | regex_replace(pattern='<(h[1-6])(?: [^>]*)?>', rep='␞$1␟')
   | regex_replace(pattern='</(h[1-6])>', rep='␞/$1␟')
@@ -45,5 +52,6 @@
   | striptags
   | replace(from='␞', to='<')
   | replace(from='␟', to='>') -%}
-{"url":{{ doc.permalink | json_encode | safe }},"file":{{ doc.relative_path | json_encode | safe }},"html":{{ html | json_encode | safe }}},
+{%- set file = doc.relative_path | replace(from=suffix, to=".md") if suffix else doc.relative_path -%}
+{"url":{{ doc.permalink | json_encode | safe }},"file":{{ file | json_encode | safe }},"html":{{ html | json_encode | safe }}},
 {%- endcomponent vp_search_doc %}

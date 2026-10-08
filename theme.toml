@@ -41,7 +41,23 @@ homepage = "https://github.com/at-least"
 # - not_found: the 404 page's texts, { code?, title?, quote?, link?,
 #   link_label?, link_text? } (VitePress's notFound).
 # - search: VitePress's local search (true), which needs the index page
-#   content/vp-search.md (README); search_button_text labels it.
+#   content/vp-search.md (README), and vp-search.<code>.md for each other
+#   language; search_button_text labels it.
+# - locales: for a site in more than one language (Zola's languages), an
+#   entry for each, { code (Zola's), label, lang?, dir? } plus any of
+#   these settings for that language (nav, sidebar, labels…), laid over
+#   them as VitePress lays a locale's themeConfig: a language menu in the
+#   navbar links each page to the same path in the others.
+#   lang_menu_label labels it.
+# - the other texts VitePress lets a locale translate:
+#   skip_to_content_label; search_box = { display_details?,
+#   reset_button_title?, back_button_title?, no_results_text?,
+#   select_text?, select_key_aria_label?, navigate_text?,
+#   navigate_up_key_aria_label?, navigate_down_key_aria_label?,
+#   close_text?, close_key_aria_label? } (its local search's
+#   translations); alert_labels = { note?, tip?, important?, warning?,
+#   caution? } and code_copy_button = { tooltip_text?, copied_text? } (its
+#   markdown's).
 [extra]
 sidebar = []
 outline = 2
@@ -66,3 +82,9 @@ footer = {}
 not_found = {}
 search = false
 search_button_text = "Search"
+locales = []
+lang_menu_label = "Change language"
+skip_to_content_label = "Skip to content"
+search_box = {}
+alert_labels = {}
+code_copy_button = {}

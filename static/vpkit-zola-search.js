@@ -95,8 +95,9 @@ async function loadDocs(url) {
 // Ctrl+P, Ctrl+N) moving the selection, Enter going to it; a page's
 // matches marked, and in the detailed list each section's text from its
 // page. Escape, the backdrop, the back button or the browser's back close
-// it; the focus stays inside while it is open, and is nowhere after, as
-// VitePress leaves it.
+// it; the focus stays inside while it is open, and is nowhere after (on
+// the heading when Enter chose a section of this page), as VitePress
+// leaves it. Its texts are the template's (the site's settings).
 const FILTER_KEY = 'vitepress:local-search-filter';
 const DETAILED_KEY = 'vitepress:local-search-detailed-list';
 const C = 'vp-local-search-box';
@@ -187,7 +188,7 @@ export function open(indexUrl, lockScroll) {
     if (filterText && !results.length && enableNoResults) {
       const li = document.createElement('li');
       li.className = `${C}__no-results`;
-      li.append('No results for "', Object.assign(document.createElement('strong'), { textContent: filterText }), '"');
+      li.append(`${template.dataset.noResultsText} "`, Object.assign(document.createElement('strong'), { textContent: filterText }), '"');
       resultsEl.append(li);
     }
     renderState();
@@ -385,8 +386,8 @@ export function open(indexUrl, lockScroll) {
 }
 
 // src/client/app/router.ts, for a search result: another page loads; on
-// this page the URL takes the hash (a history entry, a hashchange) and its
-// heading scrolls to the top, as VitePress's router does in place
+// this page the URL takes the hash (a history entry, a hashchange) and the
+// page scrolls to it, as VitePress's router does in place
 function go(href) {
   const next = new URL(href, location.href);
   if (next.origin !== location.origin || next.pathname !== location.pathname || next.search !== location.search) {
@@ -399,7 +400,32 @@ function go(href) {
     history.pushState({}, '', next.href);
     window.dispatchEvent(new HashChangeEvent('hashchange', { oldURL, newURL: next.href }));
   }
-  document.getElementById(decodeURIComponent(next.hash).slice(1))?.scrollIntoView({ block: 'start' });
+  scrollTo(next.hash);
+}
+
+// router.ts scrollTo: to the top without a hash; else, a frame later, its
+// element scrolls to the top and takes the focus, made focusable for that
+// (tabindex -1 until it loses the focus) when it is not
+function scrollTo(hash) {
+  if (!hash) {
+    window.scrollTo(0, 0);
+    return;
+  }
+  const target = document.getElementById(decodeURIComponent(hash).slice(1));
+  if (!target) return;
+  requestAnimationFrame(() => {
+    target.scrollIntoView({ block: 'start' });
+    target.focus({ preventScroll: true });
+    if (document.activeElement === target || target.hasAttribute('tabindex')) return;
+    const restoreTabindex = () => {
+      target.removeAttribute('tabindex');
+      target.removeEventListener('blur', restoreTabindex);
+    };
+    target.setAttribute('tabindex', '-1');
+    target.addEventListener('blur', restoreTabindex);
+    target.focus({ preventScroll: true });
+    if (document.activeElement !== target) restoreTabindex();
+  });
 }
 
 // ---- the excerpts ------------------------------------------------------------

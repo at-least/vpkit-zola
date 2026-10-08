@@ -4,8 +4,8 @@
     action: { text, link, theme? brand or alt }), features = [{ icon?,
     title, details?, link?, link_text? }] (an icon: HTML such as an emoji,
     or an image as the logo's, with wrap = true to set it on a tile), then
-    the markdown with the docs' styles. -#}
-{% component vp_home(doc) -%}
+    the markdown with the docs' styles. site: the settings (base.html). -#}
+{% component vp_home(doc, site) -%}
 {%- set hero = doc.extra.hero if doc.extra.hero is defined else false -%}
 {%- set features = doc.extra.features if doc.extra.features is defined else [] -%}
 <div class="vp-content vp-content--is-home" id="VPContent"><div class="vp-home">
@@ -42,7 +42,7 @@
     {%- endfor -%}
   </ul></div></div>
   {%- endif -%}
-  <div class="vp-home-content vp-doc vp-home-content__container"><div style="position:relative;"><div>{{ <vp_markdown html={doc.content} /> }}</div></div></div>
+  <div class="vp-home-content vp-doc vp-home-content__container"><div style="position:relative;"><div>{{ <vp_markdown html={doc.content} site={site} /> }}</div></div></div>
 </div></div>
 {%- endcomponent vp_home %}
 

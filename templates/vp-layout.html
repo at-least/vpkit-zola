@@ -5,8 +5,9 @@
     doc: the page or section; site: the site's [extra] (the theme's
     defaults in theme.toml); the doc's own [extra] can set layout, sidebar
     = false, aside = false and outline; title: config.title; current,
-    path: current_url and current_path. -#}
-{% component vp_layout(doc, site, title, current, path) -%}
+    path: current_url and current_path; translations, home: the links to
+    the page in the other languages and this language's home (base.html). -#}
+{% component vp_layout(doc, site, title, current, path, translations, home) -%}
 {%- set own = doc.extra -%}
 {%- set layout = own.layout if own.layout is defined else "doc" -%}
 {%- if layout != "doc" and layout != "home" -%}
@@ -15,8 +16,8 @@
 {%- set is_home = layout == "home" -%}
 {%- set has_sidebar = not is_home and site.sidebar | length > 0 and not (own.sidebar is defined and own.sidebar == false) -%}
 {%- if is_home -%}
-{{ <vp_nav site={site} title={title} current={current} path={path} has_sidebar={false} has_local_nav={false} is_home={true} /> }}
-{{ <vp_home doc={doc} /> }}
+{{ <vp_nav site={site} title={title} current={current} path={path} has_sidebar={false} has_local_nav={false} is_home={true} translations={translations} home={home} /> }}
+{{ <vp_home doc={doc} site={site} /> }}
 {%- else -%}
 {%- set has_aside = not (own.aside is defined and own.aside == false) -%}
 {%- set range = own.outline if own.outline is defined else site.outline -%}
@@ -25,12 +26,12 @@
 {%- set aside_outline -%}{{ <vp_outline entries={doc.toc} high={high} low={low} root={true} /> }}{%- endset -%}
 {%- set dropdown_outline -%}{{ <vp_outline entries={doc.toc} high={high} low={low} root={false} /> }}{%- endset -%}
 {%- set doc_footer -%}{{ <vp_doc_footer doc={doc} site={site} current={current} /> }}{%- endset -%}
-{{ <vp_nav site={site} title={title} current={current} path={path} has_sidebar={has_sidebar} has_local_nav={dropdown_outline is containing(pat="<li>")} is_home={false} /> }}
+{{ <vp_nav site={site} title={title} current={current} path={path} has_sidebar={has_sidebar} has_local_nav={dropdown_outline is containing(pat="<li>")} is_home={false} translations={translations} home={home} /> }}
 {{ <vp_local_nav has_sidebar={has_sidebar} outline={dropdown_outline} outline_label={site.outline_label} menu_label={site.sidebar_menu_label} top_label={site.return_to_top_label} /> }}
 {%- if has_sidebar %}
 {{ <vp_sidebar groups={site.sidebar} current={current} /> }}
 {%- endif %}
-{{ <vp_doc_page html={doc.content} has_sidebar={has_sidebar} has_aside={has_aside} outline={aside_outline} outline_label={site.outline_label} doc_footer={doc_footer} /> }}
+{{ <vp_doc_page html={doc.content} site={site} has_sidebar={has_sidebar} has_aside={has_aside} outline={aside_outline} doc_footer={doc_footer} /> }}
 {%- endif %}
 {{ <vp_footer site={site} off={own.footer is defined and own.footer == false} has_sidebar={has_sidebar} /> }}
 {%- endcomponent vp_layout %}
