@@ -16,9 +16,30 @@ homepage = "https://github.com/at-least"
 #   path or a URL. Empty: no sidebar.
 # - outline: the heading levels in the outline, 2, [2, 3], "deep" (2 to 6)
 #   or false.
+# - nav: the navbar's links { text, link, active_match? } and groups
+#   { text, active_match?, items } (a flyout in the bar, a list that opens
+#   in place on a phone's nav screen), as VitePress's themeConfig.nav;
+#   active_match is a regex on the page's path (current_path, /guide/x/).
+#   A group's items are links or titled groups of links.
+# - logo: the image before the title: a path, { src, width?, height?,
+#   alt? }, or { light, dark, alt? } by appearance. site_title: the title
+#   beside it, HTML allowed (default: config.title; false: none).
+# - social_links: [{ icon, link, aria_label? }], icon one of bluesky,
+#   codeberg, discord, facebook, github, gitlab, instagram, linkedin,
+#   mastodon, npm, slack, twitter, x, youtube.
+# - appearance: the light/dark switch (true), or always light (false).
 [extra]
 sidebar = []
 outline = 2
 outline_label = "On this page"
 sidebar_menu_label = "Menu"
 return_to_top_label = "Return to top"
+nav = []
+social_links = []
+appearance = true
+nav_menu_label = "Main Navigation"
+extra_menu_label = "More options"
+mobile_menu_label = "Menu"
+dark_mode_switch_label = "Appearance"
+dark_mode_switch_title = "Switch to dark theme"
+light_mode_switch_title = "Switch to light theme"

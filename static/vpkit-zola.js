@@ -8,9 +8,10 @@
 // Vue's <Transition> for an element shown and hidden with the hidden
 // attribute: name-enter-from and name-enter-active as it appears, -to from
 // the frame after, all removed when its transition ends; the same with
-// leave as it goes, hidden at the end. A new call cancels a running one.
+// leave as it goes, hidden at the end, then afterLeave. A new call cancels
+// a running one.
 const transitions = new WeakMap();
-function transition(el, name, show) {
+function transition(el, name, show, afterLeave) {
   const token = {};
   transitions.set(el, token);
   const phase = show ? 'enter' : 'leave';
@@ -28,10 +29,29 @@ function transition(el, name, show) {
       whenTransitionEnds(el, () => {
         if (transitions.get(el) !== token) return;
         el.classList.remove(`${name}-${phase}-active`, `${name}-${phase}-to`);
-        if (!show) el.hidden = true;
+        if (!show) {
+          el.hidden = true;
+          afterLeave?.();
+        }
       });
     }),
   );
+}
+
+// Vue's v-if for an element the template renders hidden: off, it is out
+// of the document, where CSS sibling selectors (+, :first-child) do not
+// see it; on, it is back in its place, which a comment keeps
+const anchors = new WeakMap();
+function render(el, on) {
+  let anchor = anchors.get(el);
+  if (!anchor) {
+    anchor = document.createComment('');
+    el.before(anchor);
+    anchors.set(el, anchor);
+    el.hidden = false;
+  }
+  if (!on) el.remove();
+  else if (!el.isConnected) anchor.after(el);
 }
 
 // done after the element's longest transition, as Vue times it
@@ -145,6 +165,331 @@ function throttleAndDebounce(fn, delay) {
       setTimeout(() => (called = false), delay);
     } else timeoutId = setTimeout(fn, delay);
   };
+}
+
+// ---- appearance --------------------------------------------------------------
+
+// src/client/app/data.ts: isDark is VueUse's useDark (useColorMode,
+// useStorage, usePreferredDark) on the key vitepress-theme-appearance. The
+// stored preference is auto, dark or light; auto when nothing is stored,
+// and then stored. The page is dark when it is dark, or auto and the system
+// is dark. A switch stores the opposite of what shows, as auto when that is
+// the system's. Each change sets `dark` on <html> with transitions off for
+// that moment; the page follows the system while auto, and other tabs'
+// changes. With appearance = false the head has no check-dark-mode script
+// and none of this runs: VitePress's isDark is then always false.
+if (document.getElementById('check-dark-mode')) {
+  const KEY = 'vitepress-theme-appearance';
+  const CSS_DISABLE_TRANS =
+    '*,*::before,*::after{-webkit-transition:none!important;-moz-transition:none!important;-o-transition:none!important;-ms-transition:none!important;transition:none!important}';
+  const preferredDark = matchMedia('(prefers-color-scheme: dark)');
+  const switches = document.querySelectorAll('.vp-switch-appearance');
+  const read = (raw) => {
+    if (raw != null) return raw;
+    localStorage.setItem(KEY, 'auto');
+    return 'auto';
+  };
+  let store = read(localStorage.getItem(KEY));
+  let applied = null;
+  const system = () => (preferredDark.matches ? 'dark' : 'light');
+  const state = () => (store === 'auto' ? system() : store);
+
+  // useColorMode's updateHTMLAttrs, on a change of state; VPSwitchAppearance
+  function apply() {
+    const mode = state();
+    if (mode === applied) return;
+    applied = mode;
+    const style = document.createElement('style');
+    style.appendChild(document.createTextNode(CSS_DISABLE_TRANS));
+    document.head.appendChild(style);
+    document.documentElement.classList.toggle('dark', mode === 'dark');
+    window.getComputedStyle(style).opacity;
+    document.head.removeChild(style);
+    for (const s of switches) {
+      s.setAttribute('aria-checked', String(mode === 'dark'));
+      s.title = mode === 'dark' ? s.dataset.lightTitle : s.dataset.darkTitle;
+    }
+  }
+
+  function setStore(value) {
+    store = value;
+    if (localStorage.getItem(KEY) !== value) localStorage.setItem(KEY, value);
+    apply();
+  }
+
+  for (const s of switches) {
+    s.addEventListener('click', () => {
+      const mode = state() === 'dark' ? 'light' : 'dark';
+      setStore(system() === mode ? 'auto' : mode);
+    });
+  }
+  preferredDark.addEventListener('change', apply);
+  window.addEventListener(
+    'storage',
+    (e) => {
+      if (e.storageArea !== localStorage) return;
+      if (e.key == null) return setStore('auto');
+      if (e.key !== KEY || e.newValue === store) return;
+      store = read(e.newValue);
+      apply();
+    },
+    { passive: true },
+  );
+  apply();
+}
+
+// ---- the navbar ----------------------------------------------------------------
+
+// VPFlyout.vue and composables/flyout.ts. With a mouse a flyout opens as the
+// pointer enters its button and closes as it leaves the button and the
+// menu; a hover-open absorbs the click that follows it. A click toggles it.
+// Escape closes it (and returns the focus to its button when the focus was
+// inside), as do a pointerdown outside and the focus moving out of it.
+let focusedElement = document.activeElement;
+const focusWatchers = new Set();
+document.addEventListener('focusin', () => {
+  if (document.activeElement === focusedElement) return;
+  focusedElement = document.activeElement;
+  for (const watcher of focusWatchers) watcher(focusedElement);
+});
+
+function flyout(el) {
+  const button = el.querySelector(':scope > .vp-flyout__button');
+  const menu = el.querySelector(':scope > .vp-flyout__menu');
+  let open = false;
+  let openedByHover = false;
+  const setOpen = (value) => {
+    open = value;
+    button.setAttribute('aria-expanded', String(value));
+  };
+  const close = () => {
+    setOpen(false);
+    openedByHover = false;
+  };
+  const onPointerLeave = (e) => {
+    if (e.pointerType !== 'mouse') return;
+    const to = e.relatedTarget;
+    if (to && (button.contains(to) || menu.contains(to))) return;
+    close();
+  };
+  button.addEventListener('pointerenter', (e) => {
+    if (e.pointerType !== 'mouse' || open) return;
+    setOpen(true);
+    openedByHover = true;
+  });
+  button.addEventListener('pointerleave', onPointerLeave);
+  menu.addEventListener('pointerleave', onPointerLeave);
+  button.addEventListener('click', () => {
+    if (open && openedByHover) {
+      openedByHover = false;
+      return;
+    }
+    openedByHover = false;
+    setOpen(!open);
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !open) return;
+    const restoreFocus = el.contains(document.activeElement);
+    close();
+    if (restoreFocus) el.querySelector('button')?.focus();
+  });
+  window.addEventListener('pointerdown', (e) => {
+    if (open && !el.contains(e.target)) close();
+  });
+  focusWatchers.add((focused) => {
+    if (focused !== el && !el.contains(focused)) close();
+  });
+  return { close };
+}
+
+const navBar = document.querySelector('.vp-nav-bar');
+if (navBar) {
+  const flyouts = new Map([...navBar.querySelectorAll('.vp-flyout')].map((el) => [el, flyout(el)]));
+
+  // VPNavBar.vue: `top` while the page is not scrolled
+  const updateTop = () => navBar.classList.toggle('vp-nav-bar--top', window.scrollY <= 0);
+  window.addEventListener('scroll', updateTop, { passive: true });
+  updateTop();
+
+  // composables/nav-overflow.ts, priority+: what does not fit the bar moves
+  // into the extra menu (…): the social links first, then the appearance
+  // switch (translations last), then menu items from the right. A collapsed
+  // unit stays in the bar, hidden but measurable. Below 48rem the engine
+  // idles with all shown: the bar shows none of it, the nav screen has it.
+  const UNITS = ['translations', 'appearance', 'socialLinks'];
+  const ALL_VISIBLE = { visibleItemCount: Infinity, translations: true, appearance: true, socialLinks: true };
+  const SLACK = 24; // headroom against sub-pixel rounding and the dividers
+  let extraWidth = 48; // until the real `⋯` button has been measured once
+
+  const container = navBar.querySelector('.vp-nav-bar__content-body');
+  const menu = navBar.querySelector('.vp-nav-menu--bar');
+  const items = menu ? [...menu.querySelectorAll(':scope > .vp-nav-menu__list > li')] : [];
+  const clusters = {
+    translations: null,
+    appearance: navBar.querySelector('.vp-nav-bar__appearance'),
+    socialLinks: navBar.querySelector('.vp-nav-bar__social-links'),
+  };
+  const extra = navBar.querySelector('.vp-nav-bar-extra');
+  const extraMenu = extra.querySelector('.vp-menu');
+  const overflowItems = extraMenu.querySelector(':scope > ul.vp-menu__group');
+  const overflowLinks = overflowItems ? [...overflowItems.children] : [];
+  const extraGroups = {
+    appearance: extraMenu.querySelector('.vp-nav-appearance__menu-appearance')?.parentElement,
+    socialLinks: extraMenu.querySelector('.vp-nav-bar-extra__social-links')?.parentElement,
+  };
+  const isEngineActive = matchMedia('(min-width: 48rem)');
+
+  function computeNavFit(input) {
+    const { itemWidths, available, extraWidth } = input;
+    const itemsTotal = itemWidths.reduce((sum, w) => sum + w, 0);
+    const clusterTotal = (input.translations ?? 0) + (input.appearance ?? 0) + (input.socialLinks ?? 0);
+    if (itemsTotal + clusterTotal <= available) return ALL_VISIBLE;
+    // something must collapse, so the `⋯` button needs room too
+    const budget = available - extraWidth;
+    if (itemsTotal > budget) {
+      // the whole cluster collapses and the menu keeps what fits from the left
+      let used = 0;
+      let visibleItemCount = 0;
+      for (const width of itemWidths) {
+        if (used + width > budget) break;
+        used += width;
+        visibleItemCount++;
+      }
+      return {
+        visibleItemCount,
+        translations: input.translations == null,
+        appearance: input.appearance == null,
+        socialLinks: input.socialLinks == null,
+      };
+    }
+    // the menu fits: the cluster collapses from its end
+    const result = { ...ALL_VISIBLE };
+    let used = itemsTotal;
+    let dropRest = false;
+    for (const unit of UNITS) {
+      const width = input[unit];
+      if (width == null) continue;
+      if (dropRest || used + width > budget) {
+        dropRest = true;
+        result[unit] = false;
+      } else {
+        used += width;
+      }
+    }
+    return result;
+  }
+
+  // natural width even while collapsed (clamped by max-width)
+  const measureUnit = (el) => Math.max(el.offsetWidth, el.scrollWidth);
+
+  function recompute() {
+    if (!isEngineActive.matches) return applyResult(ALL_VISIBLE);
+    if (extra.offsetWidth > 0) extraWidth = extra.offsetWidth;
+    // the rest of the row is fixed occupancy
+    let fixed = 0;
+    for (const child of container.children) {
+      if (child === menu || child === extra || Object.values(clusters).includes(child)) continue;
+      fixed += child.offsetWidth;
+    }
+    const clusterWidth = (unit) => (clusters[unit] ? measureUnit(clusters[unit]) : null);
+    applyResult(
+      computeNavFit({
+        itemWidths: items.map(measureUnit),
+        translations: clusterWidth('translations'),
+        appearance: clusterWidth('appearance'),
+        socialLinks: clusterWidth('socialLinks'),
+        available: container.clientWidth - fixed - SLACK,
+        extraWidth,
+      }),
+    );
+  }
+
+  // VPNavMenu.vue, the clusters' components and VPNavBarExtra.vue: the
+  // collapsed units, and the extra menu holding them (rendered only then)
+  function applyResult(result) {
+    items.forEach((li, i) => li.classList.toggle('vp-nav-menu__collapsed', i >= result.visibleItemCount));
+    for (const unit of UNITS) clusters[unit]?.classList.toggle('vp-nav-bar__collapsed', !result[unit]);
+    const overflowCount = Math.max(0, items.length - result.visibleItemCount);
+    if (overflowItems) {
+      render(overflowItems, overflowCount > 0);
+      overflowLinks.forEach((li, i) => render(li, i >= result.visibleItemCount));
+    }
+    let hasContent = overflowCount > 0;
+    for (const unit of ['appearance', 'socialLinks']) {
+      if (!extraGroups[unit]) continue;
+      render(extraGroups[unit], !result[unit]);
+      hasContent ||= !result[unit];
+    }
+    if (!hasContent && extra.isConnected) flyouts.get(extra).close();
+    render(extra, hasContent);
+  }
+
+  let scheduled = false;
+  function schedule() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(() => {
+      scheduled = false;
+      recompute();
+    });
+  }
+  const observer = new ResizeObserver(schedule);
+  for (const el of [container, menu, extra, ...items, ...Object.values(clusters)]) if (el) observer.observe(el);
+  isEngineActive.addEventListener('change', schedule);
+  // a collapsed unit keeps its clamped box when the font swaps
+  document.fonts.ready.then(schedule);
+  schedule();
+
+  // VPNavScreen.vue, VPNavBarHamburger.vue, composables/nav.ts and
+  // Layout.vue: below 48rem the hamburger opens the nav screen, fading in,
+  // with the page locked and what it covers inert. Escape closes it (the
+  // focus back on the hamburger), as do its links and the window turning
+  // 48rem wide. Its groups open in place, all closed each time it opens.
+  const hamburger = navBar.querySelector('.vp-nav-bar-hamburger');
+  const screen = document.getElementById('VPNavScreen');
+  const covered = document.querySelectorAll('.vp-skip-link, .vp-local-nav, .vp-sidebar, #VPContent');
+  let isScreenOpen = false;
+  let unlockScreen = null;
+
+  function setGroupOpen(group, open) {
+    group.classList.toggle('vp-nav-menu-group--open', open);
+    group.querySelector(':scope > .vp-nav-menu-group__button').setAttribute('aria-expanded', String(open));
+    group.querySelector(':scope > .vp-nav-menu-group__items').style.display = open ? '' : 'none';
+  }
+
+  function setScreen(open) {
+    if (open === isScreenOpen) return;
+    isScreenOpen = open;
+    hamburger.classList.toggle('vp-nav-bar-hamburger--active', open);
+    hamburger.setAttribute('aria-expanded', String(open));
+    navBar.classList.toggle('vp-nav-bar--screen-open', open);
+    for (const el of covered) el.inert = open;
+    if (open) {
+      for (const group of screen.querySelectorAll('.vp-nav-menu-group--open')) setGroupOpen(group, false);
+      transition(screen, 'vp-nav-screen--fade', true);
+      unlockScreen ??= lockScroll();
+    } else {
+      transition(screen, 'vp-nav-screen--fade', false, () => {
+        unlockScreen();
+        unlockScreen = null;
+      });
+    }
+  }
+
+  hamburger.addEventListener('click', () => setScreen(!isScreenOpen));
+  screen.addEventListener('click', (e) => {
+    const button = e.target.closest('.vp-nav-menu-group__button');
+    if (button) return setGroupOpen(button.parentElement, button.getAttribute('aria-expanded') !== 'true');
+    if (e.target.closest('.vp-nav-menu-link, .vp-menu-link__link')) setScreen(false);
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !isScreenOpen) return;
+    setScreen(false);
+    hamburger.focus();
+  });
+  isEngineActive.addEventListener('change', () => {
+    if (isEngineActive.matches) setScreen(false);
+  });
 }
 
 // ---- the sidebar -------------------------------------------------------------

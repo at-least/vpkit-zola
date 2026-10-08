@@ -7,16 +7,35 @@
 //
 // The CSS is left unminified: Tailwind's minifier rounds numbers to six
 // digits, and VitePress's line-height 1.3333333 as 1.33333 makes each h2
-// 1/64px shorter.
+// 1/64px shorter. After vpkit's CSS come the social link icons, as
+// VitePress generates its vp-icons.css: the vpi-simple-icons-* classes of
+// the icons templates/vp-nav.html lists, from Simple Icons through
+// Iconify's utilities.
 
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { appendFileSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { formatCSS } from '@iconify/utils/lib/css/format';
+import { getIconsCSSData } from '@iconify/utils/lib/css/icons';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FONTS = join(ROOT, 'node_modules/vpkit/fonts');
+
+// the list vp_social_links checks a site's icons against
+const ICONS = JSON.parse(/\{%- set icons = (\[[^\]]*\]) -%\}/.exec(readFileSync(join(ROOT, 'templates/vp-nav.html'), 'utf8'))[1]);
+
+function socialIcons() {
+  const data = JSON.parse(readFileSync(join(ROOT, 'node_modules/@iconify-json/simple-icons/icons.json'), 'utf8'));
+  const { css } = getIconsCSSData(data, ICONS, {
+    iconSelector: '.vpi-{prefix}-{name}',
+    varName: 'icon',
+    format: 'expanded',
+    mode: 'mask',
+  });
+  return `\n/* Social link icons: Simple Icons (CC0-1.0) */\n${formatCSS(css, 'expanded')}`;
+}
 
 function build(out) {
   mkdirSync(join(out, 'fonts'), { recursive: true });
@@ -25,6 +44,7 @@ function build(out) {
     ['-i', join(ROOT, 'css/vpkit-zola.css'), '-o', join(out, 'vpkit-zola.css')],
     { stdio: 'pipe' },
   );
+  appendFileSync(join(out, 'vpkit-zola.css'), socialIcons());
   for (const f of readdirSync(FONTS)) copyFileSync(join(FONTS, f), join(out, 'fonts', f));
 }
 

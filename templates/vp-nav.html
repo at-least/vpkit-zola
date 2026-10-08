@@ -1,0 +1,175 @@
+{#- vp_nav: VitePress's VPNav, its VPNavBar and the VPNavScreen the
+    hamburger opens below 48rem, with vpkit's class names, from the site's
+    [extra] (theme.toml describes each setting). What VitePress renders only
+    in the browser is rendered hidden here, for the theme's script to show:
+    the nav screen, and the extra menu (…) with what no longer fits the bar.
+    title: config.title; current, path: the page's current_url and
+    current_path. -#}
+{% component vp_nav(site, title, current, path, has_sidebar, has_local_nav) -%}
+{%- if site.appearance != true and site.appearance != false -%}
+{{ throw(message="vpkit-zola: appearance under [extra] is true or false") }}
+{%- endif -%}
+<header class="vp-nav">
+  <div class="vp-nav-bar
+    {%- if has_sidebar %} vp-nav-bar--has-sidebar{% endif %}
+    {%- if has_local_nav %} vp-nav-bar--has-local-nav{% endif %} vp-nav-bar--top">
+    <div class="vp-nav-bar__wrapper"><div class="vp-nav-bar__container">
+      <div class="vp-nav-bar__title"><div class="vp-nav-bar-title{% if has_sidebar %} vp-nav-bar-title--has-sidebar{% endif %}">
+        {%- set site_title = site.site_title if site.site_title is defined else title -%}
+        <a href="{{ get_url(path='/') }}/"{% if site_title %} title="{{ site_title | striptags | trim }}"{% endif %} class="vp-nav-bar-title__title">
+        {%- if site.logo is defined %}{{ <vp_image image={site.logo} class="vp-nav-bar-title__logo" /> }}{% endif -%}
+        {%- if site_title %}<span>{{ site_title | safe }}</span>{% endif -%}
+      </a></div></div>
+      <div class="vp-nav-bar__content"><div class="vp-nav-bar__content-body">
+        <div class="vp-nav-bar-search vp-nav-bar__search"></div>
+        {%- if site.nav | length > 0 %}
+        <nav aria-label="{{ site.nav_menu_label }}" class="vp-nav-menu vp-nav-menu--bar vp-nav-bar__menu"><ul class="vp-nav-menu__list">
+          {%- for item in site.nav -%}
+          <li>
+            {%- if item.link is defined -%}{{ <vp_nav_menu_link item={item} variant="bar" current={current} path={path} /> }}
+            {%- else -%}{{ <vp_flyout_group item={item} id={"vp-nav-flyout-" ~ loop.index} current={current} path={path} /> }}{%- endif -%}
+          </li>
+          {%- endfor -%}
+        </ul></nav>
+        {%- endif %}
+        {%- if site.appearance %}
+        <div class="vp-nav-appearance vp-nav-appearance--bar vp-nav-bar__appearance">{{ <vp_switch_appearance site={site} labelled_by="" /> }}</div>
+        {%- endif %}
+        {%- if site.social_links | length > 0 %}
+        {{ <vp_social_links links={site.social_links} class="vp-nav-social-links vp-nav-social-links--bar vp-nav-bar__social-links" /> }}
+        {%- endif %}
+        <div class="vp-flyout vp-nav-bar-extra" hidden>
+          <button type="button" aria-expanded="false" aria-controls="vp-nav-bar-extra" aria-label="{{ site.extra_menu_label }}" class="vp-flyout__button"><span aria-hidden="true" class="vpi-more-horizontal vp-flyout__icon"></span></button>
+          <div id="vp-nav-bar-extra" class="vp-flyout__menu"><div class="vp-menu">
+            {%- if site.nav | length > 0 %}
+            <ul class="vp-menu__group" hidden>{{ <vp_menu_items items={site.nav} current={current} path={path} /> }}</ul>
+            {%- endif %}
+            {%- if site.appearance %}
+            <div class="vp-menu__group" hidden><div class="vp-nav-appearance vp-nav-appearance__menu-appearance"><p id="vp-nav-bar-extra-appearance" class="vp-nav-appearance__text">{{ site.dark_mode_switch_label }}</p>{{ <vp_switch_appearance site={site} labelled_by="vp-nav-bar-extra-appearance" /> }}</div></div>
+            {%- endif %}
+            {%- if site.social_links | length > 0 %}
+            <div class="vp-menu__group" hidden><div class="vp-nav-bar-extra__item vp-menu__item vp-nav-bar-extra__social-links">{{ <vp_social_links links={site.social_links} class="vp-nav-bar-extra__social-links-list" /> }}</div></div>
+            {%- endif %}
+          </div></div>
+        </div>
+        <button type="button" aria-label="{{ site.mobile_menu_label }}" aria-expanded="false" class="vp-nav-bar-hamburger"><span aria-hidden="true" class="vp-nav-bar-hamburger__container"><span class="vp-nav-bar-hamburger__top"></span><span class="vp-nav-bar-hamburger__middle"></span><span class="vp-nav-bar-hamburger__bottom"></span></span></button>
+      </div></div>
+    </div></div>
+    <div class="vp-nav-bar__divider"><div class="vp-nav-bar__divider-line"></div></div>
+  </div>
+  <div id="VPNavScreen" class="vp-nav-screen" hidden>
+    <div class="vp-nav-screen__container">
+      {%- if site.nav | length > 0 %}
+      <nav aria-label="{{ site.nav_menu_label }}" class="vp-nav-menu vp-nav-screen__menu"><ul class="vp-nav-menu__list">
+        {%- for item in site.nav -%}
+        <li>
+          {%- if item.link is defined -%}{{ <vp_nav_menu_link item={item} variant="screen" current={current} path={path} /> }}
+          {%- else -%}{{ <vp_screen_menu_group item={item} id={"vp-nav-screen-group-" ~ loop.index} current={current} path={path} /> }}{%- endif -%}
+        </li>
+        {%- endfor -%}
+      </ul></nav>
+      {%- endif %}
+      {%- if site.appearance %}
+      <div class="vp-nav-appearance vp-nav-appearance--screen vp-nav-screen__appearance"><p id="vp-nav-screen-appearance" class="vp-nav-appearance__text">{{ site.dark_mode_switch_label }}</p>{{ <vp_switch_appearance site={site} labelled_by="vp-nav-screen-appearance" /> }}</div>
+      {%- endif %}
+      {%- if site.social_links | length > 0 %}
+      {{ <vp_social_links links={site.social_links} class="vp-nav-social-links vp-nav-screen__social-links" /> }}
+      {%- endif %}
+    </div>
+  </div>
+</header>
+{%- endcomponent vp_nav %}
+
+{#- '1' when a nav item is active, as VitePress's isChildActive: a link by
+    its active_match (a regex on the page's current_path) or else by being
+    the page, a group when any of its links is -#}
+{% component vp_nav_active(item, current, path) -%}
+{%- if item.link is defined -%}
+{%- if item.active_match is defined -%}{% if path is matching(pat=item.active_match) %}1{% endif %}
+{%- elif not item.link is matching(pat="^(?:[a-z]+:|//)") and get_url(path=item.link) == current -%}1{%- endif -%}
+{%- else -%}
+{%- for child in item.items -%}{{ <vp_nav_active item={child} current={current} path={path} /> }}{%- endfor -%}
+{%- endif -%}
+{%- endcomponent vp_nav_active %}
+
+{#- VPNavMenuLink: a link in the bar's menu or on the screen. A link is a
+    Zola path (@/…), a site path or a URL, external when it has a scheme -#}
+{% component vp_nav_menu_link(item, variant, current, path) -%}
+{%- set external = item.link is matching(pat="^(?:[a-z]+:|//)") -%}
+{%- set url = item.link if external else get_url(path=item.link) -%}
+{%- set active = path is matching(pat=item.active_match) if item.active_match is defined else url == current -%}
+<a href="{{ url }}"{% if external %} target="_blank" rel="noreferrer"{% endif %}{% if url == current %} aria-current="page"{% endif %} class="vp-nav-menu-link vp-nav-menu-link--{{ variant }}
+  {%- if active %} vp-nav-menu-link--active{% endif %}
+  {%- if external %} vp-external-link-icon{% endif %}"><span dir="auto">{{ item.text | safe }}</span></a>
+{%- endcomponent vp_nav_menu_link %}
+
+{#- VPMenu's items: VPMenuLink for a link, VPMenuGroup for a group -#}
+{% component vp_menu_items(items, current, path) -%}
+{%- for item in items -%}
+{%- if item.link is defined -%}{{ <vp_menu_link item={item} current={current} path={path} /> }}
+{%- else -%}{{ <vp_menu_group text={item.text or ""} items={item.items} current={current} path={path} /> }}{%- endif -%}
+{%- endfor -%}
+{%- endcomponent vp_menu_items %}
+
+{#- VPMenuLink -#}
+{% component vp_menu_link(item, current, path) -%}
+{%- set external = item.link is matching(pat="^(?:[a-z]+:|//)") -%}
+{%- set url = item.link if external else get_url(path=item.link) -%}
+{%- set active = path is matching(pat=item.active_match) if item.active_match is defined else url == current -%}
+<li class="vp-menu-link"><a href="{{ url }}"{% if external %} target="_blank" rel="noreferrer"{% endif %}{% if url == current %} aria-current="page"{% endif %} class="vp-menu-link__link
+  {%- if active %} vp-menu-link__active{% endif %}
+  {%- if external %} vp-external-link-icon{% endif %}"><span dir="auto">{{ item.text | safe }}</span></a></li>
+{%- endcomponent vp_menu_link %}
+
+{#- VPMenuGroup: a titled group of links in a menu -#}
+{% component vp_menu_group(text, items, current, path) -%}
+{%- set groups -%}{%- for item in items -%}{% if not item.link is defined %}g{% endif %}{%- endfor -%}{%- endset -%}
+<li class="vp-menu-group">{% if text %}<p class="vp-menu-group__title">{{ text | safe }}</p>{% endif %}<ul{% if groups %} class="vp-menu-group__sub-groups"{% endif %}>{{ <vp_menu_items items={items} current={current} path={path} /> }}</ul></li>
+{%- endcomponent vp_menu_group %}
+
+{#- VPNavMenuGroup in the bar: a VPFlyout with the group's items -#}
+{% component vp_flyout_group(item, id, current, path) -%}
+{%- set links -%}{{ <vp_nav_active item={item} current={current} path={path} /> }}{%- endset -%}
+{%- set active = path is matching(pat=item.active_match) if item.active_match is defined else links != "" -%}
+<div class="vp-flyout vp-nav-menu-group{% if active %} vp-flyout--active{% endif %}"><button type="button" aria-expanded="false" aria-controls="{{ id }}" class="vp-flyout__button"><span class="vp-flyout__text"><span dir="auto">{{ item.text | safe }}</span><span aria-hidden="true" class="vpi-chevron-down vp-flyout__text-icon"></span></span></button><div id="{{ id }}" class="vp-flyout__menu"><div class="vp-menu"><ul>{{ <vp_menu_items items={item.items} current={current} path={path} /> }}</ul></div></div></div>
+{%- endcomponent vp_flyout_group %}
+
+{#- VPNavMenuGroup on the screen: its button shows the items in place -#}
+{% component vp_screen_menu_group(item, id, current, path) -%}
+{%- set links -%}{{ <vp_nav_active item={item} current={current} path={path} /> }}{%- endset -%}
+{%- set active = path is matching(pat=item.active_match) if item.active_match is defined else links != "" -%}
+<div class="vp-nav-menu-group vp-nav-menu-group--screen{% if active %} vp-nav-menu-group--active{% endif %}"><button type="button" aria-expanded="false" aria-controls="{{ id }}" class="vp-nav-menu-group__button"><span dir="auto">{{ item.text | safe }}</span><span aria-hidden="true" class="vpi-plus vp-nav-menu-group__button-icon"></span></button><ul id="{{ id }}" class="vp-nav-menu-group__items" style="display: none;">{{ <vp_menu_items items={item.items} current={current} path={path} /> }}</ul></div>
+{%- endcomponent vp_screen_menu_group %}
+
+{#- VPSwitchAppearance. The page's appearance is known only in the browser:
+    the script sets aria-checked and the title, from the data-*-title pair -#}
+{% component vp_switch_appearance(site, labelled_by) -%}
+<button type="button" role="switch" title="{{ site.dark_mode_switch_title }}" aria-label="{{ site.dark_mode_switch_label }}" aria-checked="false"{% if labelled_by %} aria-labelledby="{{ labelled_by }}"{% endif %} data-dark-title="{{ site.dark_mode_switch_title }}" data-light-title="{{ site.light_mode_switch_title }}" class="vp-switch vp-switch-appearance"><span class="vp-switch__check"><span class="vp-switch__icon"><span aria-hidden="true" class="vpi-sun vp-switch-appearance__sun"></span><span aria-hidden="true" class="vpi-moon vp-switch-appearance__moon"></span></span></span></button>
+{%- endcomponent vp_switch_appearance %}
+
+{#- VPSocialLinks: links = [{ icon, link, aria_label? }]. icon is one of the
+    icons below, Simple Icons' (CC0), whose vpi-simple-icons-* classes
+    scripts/build.mjs builds into static/vpkit-zola.css from this list -#}
+{% component vp_social_links(links, class) -%}
+{%- set icons = ["bluesky", "codeberg", "discord", "facebook", "github", "gitlab", "instagram", "linkedin", "mastodon", "npm", "slack", "twitter", "x", "youtube"] -%}
+<ul class="vp-social-links {{ class }}">
+  {%- for link in links -%}
+  {%- if not link.icon in icons -%}
+  {{ throw(message="vpkit-zola: social_links: no icon " ~ link.icon ~ ", the theme has " ~ icons | join(sep=", ")) }}
+  {%- endif -%}
+  <li><a href="{{ link.link }}" aria-label="{{ link.aria_label or link.icon }}"{% if link.link is matching(pat="^(?:[a-z]+:|//)") %} target="_blank"{% endif %} rel="me noopener" class="vp-social-link no-icon"><span class="vpi-simple-icons-{{ link.icon }}"></span></a></li>
+  {%- endfor -%}
+</ul>
+{%- endcomponent vp_social_links %}
+
+{#- VPImage: a path, { src, width?, height?, alt? }, or { light, dark, alt? }
+    shown by appearance -#}
+{% component vp_image(image, class) -%}
+{%- if image is string -%}
+<img src="{{ get_url(path=image) }}" alt="" class="vp-image {{ class }}">
+{%- elif image.src is defined -%}
+<img src="{{ get_url(path=image.src) }}"{% if image.width is defined %} width="{{ image.width }}"{% endif %}{% if image.height is defined %} height="{{ image.height }}"{% endif %} alt="{{ image.alt or '' }}" class="vp-image {{ class }}">
+{%- else -%}
+<img src="{{ get_url(path=image.dark) }}" alt="{{ image.alt or '' }}" class="vp-image dark {{ class }}"><img src="{{ get_url(path=image.light) }}" alt="{{ image.alt or '' }}" class="vp-image vp-image--light {{ class }}">
+{%- endif -%}
+{%- endcomponent vp_image %}

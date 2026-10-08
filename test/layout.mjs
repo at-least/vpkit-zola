@@ -1,35 +1,51 @@
-// vpkit-zola's layout against vitepress.dev's.
+// vpkit-zola's layout against VitePress's.
 //
-//   node test/layout.mjs
+//   node test/layout.mjs [pattern]     pattern: run the checks it matches
 //
 // Builds test/parity-site (vitepress.dev's guide sidebar and the headings of
-// its getting-started page) with the theme and renders its page next to
-// vitepress.dev as VitePress rendered it in a browser: vpkit's snapshots
-// (node_modules/vpkit/test/upstream/pages/hydrated), with the stylesheets of
-// the same deploy and their scripts blocked. Where a snapshot was taken after
-// a click (the open sidebar, the open outline dropdown), the theme's page gets
-// the same click and its transitions run out. Each pair of subtrees is walked
-// in document order, vitepress.dev's without its own additions (ads), the
-// theme's without what it keeps hidden (where Vue renders nothing); every
-// element's tag, text, computed style, ::before and ::after, and box is
-// compared at each width, and in dark mode at 1280.
+// its getting-started page, and a navbar) with the theme and renders its
+// page next to VitePress's, one of two:
+// - vitepress.dev as VitePress rendered it in a browser: vpkit's snapshots
+//   (node_modules/vpkit/test/upstream/pages/hydrated), with the stylesheets
+//   of the same deploy and their scripts blocked. Where a snapshot was taken
+//   after a click (the open sidebar, the open outline dropdown), the theme's
+//   page gets the same click.
+// - test/vitepress-build, VitePress's build of the same site, live: both
+//   pages run their scripts and get the same steps (a hover, clicks, a
+//   scroll), so what VitePress's components decide in the browser (what fits
+//   the navbar, what a click opens) is compared too.
+// Transitions run out before anything is read. Each pair of subtrees is
+// walked in document order, VitePress's without vitepress.dev's own
+// additions (ads), the theme's without what it keeps hidden (where Vue
+// renders nothing); every element's tag, text, computed style, ::before and
+// ::after, and box is compared at each width, and in dark mode at 1280.
 //
 // Exits 1, listing every difference, when any check fails.
 
-import { existsSync, readFileSync, rmSync } from 'node:fs';
-import { extname, join } from 'node:path';
+import { readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { chromium } from 'playwright-chromium';
 
-import { PROPS, PSEUDO_PROPS, ROOT, TYPES, UPSTREAM, same, zolaBuild } from './lib.mjs';
+import { PROPS, PSEUDO_PROPS, ROOT, UPSTREAM, VITEPRESS_BUILD, checkVitepressBuild, same, serve, zolaBuild } from './lib.mjs';
 
 const OURS = 'https://parity.test';
 const SITE = 'https://vitepress.dev';
+const LOCAL = 'https://vitepress.test';
 const HYDRATED = join(UPSTREAM, 'pages/hydrated');
 const DARK_AT = 1280;
 
-// snapshot: a hydrated page; path: the theme's page; click: what opens the
-// state the snapshot shows; pairs: [vitepress.dev's subtree, the theme's];
-// drop: vitepress.dev's elements the theme does not render
+// snapshot: a hydrated page of vitepress.dev, click: what opens the state it
+// shows on the theme's page; or vitepress: test/vitepress-build's page, and
+// steps: [action, VitePress's selector, the theme's] done on both, action
+// hover, click, click all (each match) or scroll (to y = the selector), and
+// expect: [VitePress's, the theme's] expressions that must be true after
+// them (the state the steps are for was reached). path: the theme's page;
+// pairs: [VitePress's subtree, the theme's]; drop: vitepress.dev's elements
+// the theme does not render
+const NAV_PAGE = { vitepress: '/guide/getting-started.html', path: '/guide/getting-started/' };
+// shown, opacity and visibility included (a closed flyout's menu is in the
+// page, transparent and hidden)
+const shown = (selector) => `document.querySelector(${JSON.stringify(selector)})?.checkVisibility({ opacityProperty: true, visibilityProperty: true }) === true`;
 const checks = [
   {
     name: 'sidebar',
@@ -72,6 +88,67 @@ const checks = [
     pairs: [['.VPDoc .aside', '.vp-doc-page__aside']],
     drop: '.VPDocAsideCarbonAds, .VPDocAsideSponsors',
   },
+  // the navbar where VitePress lays it out differently: on a phone, then
+  // where the parity site's bar has no room for two menu items, the
+  // appearance switch and the social links (768), for one item and both
+  // (880, and 960 beside the sidebar), for both (1120), for the social
+  // links (1200), and where all fits
+  {
+    name: 'navbar',
+    ...NAV_PAGE,
+    widths: [375, 768, 880, 960, 1120, 1200, 1280, 1440],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  {
+    name: 'navbar, scrolled',
+    ...NAV_PAGE,
+    widths: [375, 1280],
+    steps: [['scroll', '200', '200']],
+    expect: [
+      "scrollY === 200 && !document.querySelector('.VPNavBar').classList.contains('top')",
+      "scrollY === 200 && !document.querySelector('.vp-nav-bar').classList.contains('vp-nav-bar--top')",
+    ],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  {
+    name: 'navbar, flyout open',
+    ...NAV_PAGE,
+    widths: [1280, 1440],
+    steps: [['hover', '.VPNavBarMenu li:nth-child(5) .VPFlyout > .button', '.vp-nav-bar__menu li:nth-child(5) .vp-flyout > .vp-flyout__button']],
+    expect: [shown('.VPNavBarMenu li:nth-child(5) .VPFlyout > .menu'), shown('.vp-nav-bar__menu li:nth-child(5) .vp-flyout > .vp-flyout__menu')],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  {
+    name: 'navbar, extra menu open',
+    ...NAV_PAGE,
+    widths: [768, 960, 1120, 1200],
+    // a hover: after a click the pointer moves away, which closes a flyout
+    steps: [['hover', '.VPNavBarExtra > .button', '.vp-nav-bar-extra > .vp-flyout__button']],
+    expect: [shown('.VPNavBarExtra > .menu'), shown('.vp-nav-bar-extra > .vp-flyout__menu')],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  {
+    name: 'nav screen',
+    ...NAV_PAGE,
+    widths: [375, 640],
+    steps: [['click', '.VPNavBarHamburger', '.vp-nav-bar-hamburger']],
+    expect: [shown('#VPNavScreen'), shown('#VPNavScreen')],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
+  {
+    name: 'nav screen, groups open',
+    ...NAV_PAGE,
+    widths: [375],
+    steps: [
+      ['click', '.VPNavBarHamburger', '.vp-nav-bar-hamburger'],
+      ['click all', '.VPNavScreenMenuGroup > .button', '.vp-nav-menu-group--screen > .vp-nav-menu-group__button'],
+    ],
+    expect: [
+      "[...document.querySelectorAll('.VPNavScreenMenuGroup')].every((g) => g.classList.contains('open') && g.querySelector('.items').checkVisibility())",
+      "[...document.querySelectorAll('.vp-nav-menu-group--screen')].every((g) => g.classList.contains('vp-nav-menu-group--open') && g.querySelector('.vp-nav-menu-group__items').checkVisibility())",
+    ],
+    pairs: [['.VPNav', '.vp-nav']],
+  },
 ];
 
 // intentional differences: { check: /name/, element: /path/, prop: /name/,
@@ -90,30 +167,25 @@ const known = [
     reason: "the spacer takes the aside's free height, which vitepress.dev's Carbon ads share below it",
   },
   {
-    check: /^(aside|local nav, outline open)/,
+    check: /^(aside|local nav, outline open|nav)/,
     element: /./,
     prop: /^(box y|box height|height|bottom|top)$/,
     within: 0.25,
-    reason: "vitepress.dev's minified CSS has line-height 2.28571 for VitePress's 2.2857143, so each outline line is 1/64px shorter there; vpkit keeps the source value",
+    reason: "VitePress's minified CSS has line-height 2.28571 for its 2.2857143, so each line of the outline and of the menus is 1/64px shorter there; vpkit keeps the source value",
   },
   {
-    check: /^local nav/,
-    element: /^div\.VPLocalNav/,
-    prop: /^box y$/,
-    reason: "vpkit-zola has no navbar yet: below 60rem VitePress's VPNav is in the flow above the local nav, 64px tall",
+    check: /^nav/,
+    element: / > img\[0\]$/,
+    prop: /^vertical-align$/,
+    reason: "Tailwind's preflight gives an img vertical-align: middle where VitePress leaves baseline; the logo is a flex item, which vertical-align does not move",
   },
 ];
 
 const fonts = join(ROOT, 'node_modules/vpkit/fonts');
 
 async function routes(context, site) {
-  await context.route(`${OURS}/**`, (route) => {
-    let path = decodeURIComponent(new URL(route.request().url()).pathname);
-    if (path.endsWith('/')) path += 'index.html';
-    const file = join(site, path);
-    if (!existsSync(file)) return route.fulfill({ status: 404, body: `not found: ${path}` });
-    route.fulfill({ body: readFileSync(file), contentType: TYPES[extname(file)] ?? 'application/octet-stream' });
-  });
+  await context.route(`${OURS}/**`, serve(site));
+  await context.route(`${LOCAL}/**`, serve(VITEPRESS_BUILD));
   await context.route(`${SITE}/**`, (route) => {
     const path = new URL(route.request().url()).pathname;
     const page = /^\/snapshot\/([\w.-]+)$/.exec(path);
@@ -128,14 +200,45 @@ async function routes(context, site) {
   });
 }
 
-// let transitions finish: no element keeps an enter or leave class, no
-// animation runs, the sidebar's groups have their caret transitions back
+// let transitions finish and the navbar's overflow engine decide (it
+// measures in animation frames): for three frames in a row, no element has
+// an enter or leave class, nothing animates, the sidebar's groups have their
+// caret transitions back and the header has not changed
 async function settle(page) {
-  await page.waitForFunction(
+  await page.evaluate(
     () =>
-      !document.querySelector('[class*="-enter-"], [class*="-leave-"], .vp-sidebar-group--no-transition') &&
-      document.getAnimations().every((a) => a.playState !== 'running'),
+      new Promise((resolve) => {
+        let last = null;
+        let stable = 0;
+        const tick = () => {
+          const busy =
+            !!document.querySelector('[class*="-enter-"], [class*="-leave-"], .vp-sidebar-group--no-transition') ||
+            document.getAnimations().some((a) => a.playState === 'running');
+          const now = document.querySelector('header')?.outerHTML ?? '';
+          stable = !busy && now === last ? stable + 1 : 0;
+          last = now;
+          if (stable >= 3) resolve();
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
   );
+}
+
+// a check's step on one side
+async function step(page, action, selector, away) {
+  if (action === 'hover') await page.hover(selector);
+  else if (action === 'click') {
+    await page.click(selector);
+    await away();
+  } else if (action === 'click all') {
+    const n = await page.locator(selector).count();
+    if (!n) throw new Error(`no ${selector}`);
+    for (let i = 0; i < n; i++) await page.locator(selector).nth(i).click();
+    await away();
+  } else if (action === 'scroll') await page.evaluate((y) => window.scrollTo(0, Number(y)), selector);
+  else throw new Error(`no step ${action}`);
+  await settle(page);
 }
 
 // every element of a subtree in document order, skipping drop and [hidden]
@@ -172,10 +275,12 @@ const failures = [];
 const expected = [];
 let compared = 0;
 
+const only = process.argv[2] ? new RegExp(process.argv[2]) : null;
+checkVitepressBuild();
 const site = zolaBuild(OURS, 'test/parity-site');
 const browser = await chromium.launch();
 try {
-  for (const c of checks) {
+  for (const c of checks.filter((c) => !only || only.test(c.name))) {
     const runs = c.widths.map((w) => [w, false]);
     if (c.widths.includes(DARK_AT)) runs.push([DARK_AT, true]);
     for (const [width, dark] of runs) {
@@ -186,19 +291,25 @@ try {
         await routes(context, site.out);
         if (dark) await context.addInitScript(() => localStorage.setItem('vitepress-theme-appearance', 'dark'));
         const page = await context.newPage();
-        await page.goto(side === 'upstream' ? `${SITE}/snapshot/${c.snapshot}` : `${OURS}${c.path}`);
+        const errors = [];
+        page.on('pageerror', (e) => errors.push(e.message));
+        const url = side === 'theme' ? `${OURS}${c.path}` : c.snapshot ? `${SITE}/snapshot/${c.snapshot}` : `${LOCAL}${c.vitepress}`;
+        await page.goto(url);
         await page.evaluate(() => document.fonts.ready);
         // hover nothing that reacts, and let what a hover started run out
         const away = () => page.mouse.move(width - 1, 899);
         await away();
-        if (side === 'theme') {
-          await settle(page);
-          if (c.click) {
-            await page.click(c.click);
-            await away();
-          }
+        if (side === 'theme' || c.vitepress) await settle(page);
+        if (side === 'theme' && c.click) {
+          await page.click(c.click);
+          await away();
         }
+        for (const [action, up, ours] of c.steps ?? []) await step(page, action, side === 'theme' ? ours : up, away);
         await settle(page);
+        if (c.expect && !(await page.evaluate(c.expect[side === 'theme' ? 1 : 0]))) {
+          failures.push(`${run} ${side}: the steps did not reach their state: ${c.expect[side === 'theme' ? 1 : 0]}`);
+        }
+        if (errors.length) failures.push(`${run} ${side}: page errors: ${errors.join(' | ')}`);
         sides[side] = [];
         for (const [up, ours] of c.pairs) {
           sides[side].push(await describe(page, side === 'upstream' ? up : ours, side === 'upstream' ? c.drop : null));
@@ -239,10 +350,10 @@ try {
   rmSync(site.dir, { recursive: true, force: true });
 }
 
-for (const k of known) {
+for (const k of known.filter((k) => checks.some((c) => k.check.test(c.name) && (!only || only.test(c.name))))) {
   if (k.hits) console.log(`KNOWN ${k.hits}× ${k.check} ${k.element} ${k.prop}: ${k.reason}`);
   else failures.push(`known difference no longer occurs, remove it: ${k.check} ${k.element} ${k.prop}`);
 }
 for (const f of failures) console.log(`DIFF  ${f}`);
-console.log(`layout parity: ${checks.length} checks, ${compared} values compared, ${failures.length} failures, ${expected.length} known`);
+console.log(`layout parity: ${checks.filter((c) => !only || only.test(c.name)).length} checks, ${compared} values compared, ${failures.length} failures, ${expected.length} known`);
 process.exit(failures.length ? 1 : 0);

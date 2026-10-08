@@ -1,9 +1,13 @@
 # A Zola site laid out as vitepress.dev's guide: its sidebar (VitePress's
 # docs/config.ts sidebarGuide(), as deployed: the reference link sits in a
-# section without a title) and its getting-started page's
-# headings, so test/render.mjs can compare the theme's sidebar, local nav and
-# aside with the site's, element by element. The theme comes from the
-# repository: test/render.mjs links it in as themes/vpkit-zola.
+# section without a title) and its getting-started page's headings, so
+# test/layout.mjs can compare the theme's sidebar, local nav and aside with
+# the site's, element by element. Its navbar is vitepress.dev's with more
+# in it (links, an external one, a group of titled groups, three social
+# links), so the bar runs out of room below desktop widths and VitePress
+# moves part of it into the extra menu; test/vitepress-site is the same
+# site for VitePress, the navbar's reference. The theme comes from the repository:
+# the tests link it in as themes/vpkit-zola.
 base_url = "https://parity.test"
 title = "VitePress"
 theme = "vpkit-zola"
@@ -19,6 +23,36 @@ insert_anchor_links = "right"
 style = "inline"
 light_theme = "github-light"
 dark_theme = "github-dark"
+
+[extra]
+logo = { src = "/vitepress-logo-mini.svg", width = 24, height = 24 }
+nav = [
+  { text = "Guide", link = "@/guide/getting-started.md", active_match = "/guide/" },
+  { text = "Reference", link = "/reference/site-config/", active_match = "/reference/" },
+  { text = "Plugins", link = "/plugins/" },
+  { text = "Showcase", link = "/showcase/" },
+  { text = "Ecosystem", items = [
+    { text = "Resources", items = [
+      { text = "Team", link = "/team/" },
+      { text = "Blog", link = "https://blog.vuejs.org/" },
+    ] },
+    { text = "Help", items = [
+      { text = "Discord", link = "https://chat.vuejs.org/" },
+      { text = "GitHub Discussions", link = "https://github.com/vuejs/vitepress/discussions" },
+    ] },
+  ] },
+  { text = "Sponsor", link = "https://github.com/sponsors/yyx990803" },
+  { text = "2.0.0-alpha.20", items = [
+    { text = "1.6.4", link = "https://vuejs.github.io/vitepress/v1/" },
+    { text = "Changelog", link = "https://github.com/vuejs/vitepress/blob/main/CHANGELOG.md" },
+    { text = "Contributing", link = "https://github.com/vuejs/vitepress/blob/main/.github/contributing.md" },
+  ] },
+]
+social_links = [
+  { icon = "github", link = "https://github.com/vuejs/vitepress" },
+  { icon = "discord", link = "https://chat.vuejs.org/" },
+  { icon = "x", link = "https://x.com/vuejs" },
+]
 
 [[extra.sidebar]]
 text = "Introduction"

@@ -26,6 +26,19 @@ outline = 2
 outline_label = "On this page"
 sidebar_menu_label = "Menu"
 return_to_top_label = "Return to top"
+nav = [
+  { text = "Parity", link = "@/parity/markdown.md", active_match = "^/parity/" },
+]
+social_links = [
+  { icon = "github", link = "https://github.com/at-least/vpkit-zola" },
+]
+appearance = true
+nav_menu_label = "Main Navigation"
+extra_menu_label = "More options"
+mobile_menu_label = "Menu"
+dark_mode_switch_label = "Appearance"
+dark_mode_switch_title = "Switch to dark theme"
+light_mode_switch_title = "Switch to light theme"
 
 [[extra.sidebar]]
 text = "Introduction"
