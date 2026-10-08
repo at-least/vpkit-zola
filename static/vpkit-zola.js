@@ -555,6 +555,22 @@ sidebar?.addEventListener('click', (e) => {
   if (row && !row.querySelector(':scope > .vp-sidebar-item__link')) toggleSidebarItem(row.parentElement);
 });
 
+// ---- the local nav ------------------------------------------------------------
+
+// VPLocalNav.vue: on a page with neither an outline nor a sidebar it is
+// there only once the page has scrolled past the navbar's height
+const localNav = document.querySelector('.vp-local-nav--fixed');
+if (localNav) {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position: absolute; visibility: hidden; height: var(--vp-nav-height)';
+  document.body.appendChild(probe);
+  const navHeight = probe.offsetHeight;
+  probe.remove();
+  const update = () => render(localNav, window.scrollY >= navHeight);
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+}
+
 // ---- the local nav's outline dropdown -------------------------------------------
 
 // VPLocalNavOutlineDropdown.vue: the outline drops down under its button,

@@ -4,15 +4,16 @@
     in the browser is rendered hidden here, for the theme's script to show:
     the nav screen, and the extra menu (…) with what no longer fits the bar.
     title: config.title; current, path: the page's current_url and
-    current_path. -#}
-{% component vp_nav(site, title, current, path, has_sidebar, has_local_nav) -%}
+    current_path; is_home: a home page's bar (transparent at the top). -#}
+{% component vp_nav(site, title, current, path, has_sidebar, has_local_nav, is_home) -%}
 {%- if site.appearance != true and site.appearance != false -%}
 {{ throw(message="vpkit-zola: appearance under [extra] is true or false") }}
 {%- endif -%}
 <header class="vp-nav">
   <div class="vp-nav-bar
     {%- if has_sidebar %} vp-nav-bar--has-sidebar{% endif %}
-    {%- if has_local_nav %} vp-nav-bar--has-local-nav{% endif %} vp-nav-bar--top">
+    {%- if has_local_nav %} vp-nav-bar--has-local-nav{% endif %}
+    {%- if is_home %} vp-nav-bar--home{% endif %} vp-nav-bar--top">
     <div class="vp-nav-bar__wrapper"><div class="vp-nav-bar__container">
       <div class="vp-nav-bar__title"><div class="vp-nav-bar-title{% if has_sidebar %} vp-nav-bar-title--has-sidebar{% endif %}">
         {%- set site_title = site.site_title if site.site_title is defined else title -%}

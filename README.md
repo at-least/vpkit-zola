@@ -2,7 +2,7 @@
 
 A [Zola](https://www.getzola.org) theme with VitePress's look, built on [vpkit](https://github.com/at-least/vpkit). A docs site needs only `zola` (0.23.6 or later): the theme ships its stylesheet, fonts and script prebuilt, so there is no Node.js and no build step.
 
-Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens), the aside with the outline, the doc footer and the site footer, as VitePress renders them. Not yet: translations, search, the home page.
+Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens), the aside with the outline, the doc footer, the site footer and the home page, as VitePress renders them. Not yet: translations, search.
 
 ## Use
 
@@ -75,6 +75,38 @@ footer = { message = "Released under the MIT License.", copyright = "Copyright �
 ```
 
 `:path` is the doc's file under `content/`. The links to the previous and next pages follow the sidebar's order, as in VitePress; their labels are `doc_footer_prev` ("Previous page") and `doc_footer_next` ("Next page"), `false` for none, and `last_updated_text` ("Last updated") labels the date. A doc's own `[extra]` can set `edit_link`, `last_updated` or `footer` to `false`, and `prev` and `next` to `false`, a text, or `{ text, link }`.
+
+A home page is VitePress's `layout: home`, set in a page's or section's front matter (usually `content/_index.md`):
+
+```toml
++++
+title = "My Project"
+
+[extra]
+layout = "home"
+
+[extra.hero]
+name = "My Project"
+text = "What it is, in a line"
+tagline = "Why it matters"
+image = { src = "/logo.svg", alt = "My Project" }
+actions = [
+  { theme = "brand", text = "Get Started", link = "@/guide/introduction.md" },
+  { theme = "alt", text = "GitHub", link = "https://github.com/you/project" },
+]
+
+[[extra.features]]
+icon = "⚡"                  # HTML, or an image: { src, width?, height?, wrap? }
+title = "Fast"
+details = "One line, or a list: [\"…\", \"…\"]"
+link = "@/guide/speed.md"    # optional, with link_text
+link_text = "Learn more"
++++
+
+Markdown here goes below the features.
+```
+
+The features sit two, three or four to a row by their number, as in VitePress. A home page has no sidebar or local nav, and the navbar is transparent until the page scrolls.
 
 A nav item is a link or a group, a flyout in the bar and a list that opens in place on a phone; a group holds links and titled groups of links. `active_match` is a regular expression tested on the page's path (Zola's `current_path`, such as `/guide/introduction/`); without one, a link is active on its own page. Social link icons are Simple Icons': `bluesky`, `codeberg`, `discord`, `facebook`, `github`, `gitlab`, `instagram`, `linkedin`, `mastodon`, `npm`, `slack`, `twitter`, `x`, `youtube` (`aria_label` overrides the name read out). What does not fit the bar moves into the extra menu (…) as in VitePress: the social links first, then the switch, then menu items from the right. The labels: `nav_menu_label` ("Main Navigation"), `extra_menu_label` ("More options"), `mobile_menu_label` ("Menu"), `dark_mode_switch_label` ("Appearance"), `dark_mode_switch_title` ("Switch to dark theme"), `light_mode_switch_title` ("Switch to light theme").
 

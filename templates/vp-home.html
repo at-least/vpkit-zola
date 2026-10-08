@@ -1,0 +1,79 @@
+{#- vp_home: VitePress's VPHome inside VPContent, with vpkit's class names,
+    from a page's or section's [extra] (VitePress's front matter for
+    layout: home): hero = { name?, text?, tagline?, image?, actions? } (an
+    action: { text, link, theme? brand or alt }), features = [{ icon?,
+    title, details?, link?, link_text? }] (an icon: HTML such as an emoji,
+    or an image as the logo's, with wrap = true to set it on a tile), then
+    the markdown with the docs' styles. -#}
+{% component vp_home(doc) -%}
+{%- set hero = doc.extra.hero if doc.extra.hero is defined else false -%}
+{%- set features = doc.extra.features if doc.extra.features is defined else [] -%}
+<div class="vp-content vp-content--is-home" id="VPContent"><div class="vp-home">
+  {%- if hero -%}
+  <div class="vp-hero{% if hero.image is defined %} vp-hero--has-image{% endif %}"><div class="vp-hero__container">
+    <div class="vp-hero__main">
+      <h1 class="vp-hero__heading">
+        {%- if hero.name is defined %}<span dir="auto" class="vp-hero__name vp-hero__clip">{{ hero.name | safe }}</span>{% endif -%}
+        {%- if hero.text is defined %}<span dir="auto" class="vp-hero__text">{{ hero.text | safe }}</span>{% endif -%}
+      </h1>
+      {%- if hero.tagline is defined %}<p class="vp-hero__tagline"><bdi>{{ hero.tagline | safe }}</bdi></p>{% endif -%}
+      {%- if hero.actions is defined -%}
+      <div class="vp-hero__actions">
+        {%- for action in hero.actions -%}
+        {%- set external = action.link is matching(pat="^(?:[a-z]+:|//)") -%}
+        <div class="vp-hero__action"><a href="{{ action.link if external else get_url(path=action.link) }}"{% if external %} target="_blank" rel="noreferrer"{% endif %} class="vp-button no-icon vp-button--medium vp-button--{{ action.theme if action.theme is defined else 'brand' }}">{{ action.text }}</a></div>
+        {%- endfor -%}
+      </div>
+      {%- endif -%}
+    </div>
+    {%- if hero.image is defined -%}
+    <div class="vp-hero__image"><div class="vp-hero__image-container"><div class="vp-hero__image-bg"></div>{{ <vp_image image={hero.image} class="vp-hero__image-src" /> }}</div></div>
+    {%- endif -%}
+  </div></div>
+  {%- endif -%}
+  {%- if features | length > 0 -%}
+  {#- VPFeatures's grid: two, three, six (any multiple of three) or four
+      to a row -#}
+  {%- set n = features | length -%}
+  {%- set grid = "" if n == 1 else ("vp-features__grid-2 " if n == 2 else ("vp-features__grid-3 " if n == 3 else ("vp-features__grid-6 " if n % 3 == 0 else "vp-features__grid-4 "))) -%}
+  <div class="vp-features"><div class="vp-features__container"><ul class="vp-features__items">
+    {%- for feature in features -%}
+    <li class="{{ grid }}vp-features__item">{{ <vp_feature feature={feature} /> }}</li>
+    {%- endfor -%}
+  </ul></div></div>
+  {%- endif -%}
+  <div class="vp-home-content vp-doc vp-home-content__container"><div style="position:relative;"><div>{{ <vp_markdown html={doc.content} /> }}</div></div></div>
+</div></div>
+{%- endcomponent vp_home %}
+
+{#- VPFeature: a link (VPLink) when it has one, else a box -#}
+{% component vp_feature(feature) -%}
+{%- set tag = "a" if feature.link is defined else "div" -%}
+{%- set external = feature.link is defined and feature.link is matching(pat="^(?:[a-z]+:|//)") -%}
+<{{ tag }}{% if feature.link is defined %} href="{{ feature.link if external else get_url(path=feature.link) }}"{% if external %} target="_blank" rel="noreferrer"{% endif %}{% endif %} class="{% if external %}vp-external-link-icon {% endif %}no-icon vp-feature{% if feature.link is defined %} vp-feature--link{% endif %}"><article class="vp-feature__box">
+  {%- if feature.icon is defined -%}
+  {%- if feature.icon is string -%}<div class="vp-feature__icon">{{ feature.icon | safe }}</div>
+  {%- elif feature.icon.wrap is defined and feature.icon.wrap -%}<div class="vp-feature__icon">{{ <vp_feature_image icon={feature.icon} /> }}</div>
+  {%- else -%}{{ <vp_feature_image icon={feature.icon} /> }}{%- endif -%}
+  {%- endif -%}
+  <h2 class="vp-feature__title"><bdi>{{ feature.title | safe }}</bdi></h2>
+  {%- if feature.details is defined -%}
+  {%- if feature.details is string -%}<p class="vp-feature__details"><bdi>{{ feature.details | safe }}</bdi></p>
+  {%- else -%}<ul class="vp-feature__details">{% for item in feature.details %}<li>{{ item | safe }}</li>{% endfor %}</ul>{%- endif -%}
+  {%- endif -%}
+  {%- if feature.link_text is defined -%}
+  <div class="vp-feature__link-text"><p class="vp-feature__link-text-value">{{ feature.link_text }} <span class="vpi-arrow-right vp-feature__link-text-icon"></span></p></div>
+  {%- endif -%}
+</article></{{ tag }}>
+{%- endcomponent vp_feature %}
+
+{#- a feature's image icon: VPImage, 48px square unless it says -#}
+{% component vp_feature_image(icon) -%}
+{%- set size = ' width="' ~ (icon.width if icon.width is defined else 48) ~ '" height="' ~ (icon.height if icon.height is defined else 48) ~ '"' -%}
+{%- set alt = icon.alt if icon.alt is defined else "" -%}
+{%- if icon.src is defined -%}
+<img src="{{ get_url(path=icon.src) }}" alt="{{ alt }}"{{ size | safe }} class="vp-image">
+{%- else -%}
+<img src="{{ get_url(path=icon.dark) }}" alt="{{ alt }}"{{ size | safe }} class="vp-image dark"><img src="{{ get_url(path=icon.light) }}" alt="{{ alt }}"{{ size | safe }} class="vp-image vp-image--light">
+{%- endif -%}
+{%- endcomponent vp_feature_image %}

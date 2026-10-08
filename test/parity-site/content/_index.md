@@ -1,5 +1,42 @@
 +++
 title = "VitePress"
+
+[extra]
+layout = "home"
+
+[extra.hero]
+name = "VitePress"
+text = "Vite & Vue Powered Static Site Generator"
+tagline = "Markdown to beautiful docs in minutes"
+image = { src = "/vitepress-logo-mini.svg", alt = "VitePress" }
+actions = [
+  { theme = "brand", text = "What is VitePress?", link = "/guide/what-is-vitepress/" },
+  { theme = "alt", text = "Quickstart", link = "@/guide/getting-started.md" },
+  { theme = "alt", text = "GitHub", link = "https://github.com/vuejs/vitepress" },
+]
+
+[[extra.features]]
+icon = "📝"
+title = "Focus on your content"
+details = "Effortlessly create beautiful documentation sites with just markdown."
+
+[[extra.features]]
+icon = { src = "/vitepress-logo-mini.svg", wrap = true }
+title = "Enjoy the Vite DX"
+details = "Instant server start, lightning fast hot updates, and leverage Vite ecosystem plugins."
+
+[[extra.features]]
+icon = { src = "/vitepress-logo-mini.svg", width = 40, height = 40 }
+title = "Customize with Vue"
+details = ["Use Vue syntax and components directly in markdown.", "Or build custom themes with Vue."]
+
+[[extra.features]]
+title = "Ship fast sites"
+details = "Fast initial load with static HTML, fast post-load navigation with client-side routing."
+link = "@/guide/getting-started.md"
+link_text = "Learn more"
 +++
 
-# VitePress
+## Below the Features
+
+Markdown on the home page takes the docs' styles.

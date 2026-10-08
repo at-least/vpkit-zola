@@ -5,10 +5,13 @@
     shows them. -#}
 {% component vp_local_nav(has_sidebar, outline, outline_label, menu_label, top_label) -%}
 {%- set has_outline = outline is containing(pat="<li>") -%}
+{#- with neither an outline nor a sidebar, VitePress shows it only once the
+    page has scrolled past the navbar: hidden until the script sees that -#}
 <div class="vp-local-nav
   {%- if has_sidebar %} vp-local-nav--has-sidebar{% endif %}
   {%- if not has_outline %} vp-local-nav--empty{% endif %}
-  {%- if not has_outline and not has_sidebar %} vp-local-nav--fixed{% endif %}">
+  {%- if not has_outline and not has_sidebar %} vp-local-nav--fixed{% endif %}"
+  {%- if not has_outline and not has_sidebar %} hidden{% endif %}>
   <div class="vp-local-nav__container">
     {%- if has_sidebar -%}
     <button type="button" class="vp-local-nav__menu" aria-expanded="false" aria-controls="VPSidebarNav"><span class="vpi-align-left vp-local-nav__menu-icon" aria-hidden="true"></span><span class="vp-local-nav__menu-text">{{ menu_label }}</span></button>

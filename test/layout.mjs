@@ -136,9 +136,9 @@ const checks = [
     pairs: [['.VPNav', '.vp-nav']],
   },
   // the doc footer: the edit link, the last updated time, the pages
-  // before and after, on a page in the sidebar, on one outside it (the
-  // home page: no previous, the sidebar's first as next), and on one that
-  // sets the options, without a sidebar, so the site's footer shows
+  // before and after, on a page in the sidebar, on one outside it (no
+  // previous, the sidebar's first as next), and on one that sets the
+  // options, without a sidebar, so the site's footer shows
   {
     name: 'doc footer',
     ...NAV_PAGE,
@@ -150,8 +150,8 @@ const checks = [
   },
   {
     name: 'doc footer, outside the sidebar',
-    vitepress: '/index.html',
-    path: '/',
+    vitepress: '/outside.html',
+    path: '/outside/',
     widths: [375, 1280],
     pairs: [['.VPDocFooter', '.vp-doc-footer']],
   },
@@ -164,6 +164,57 @@ const checks = [
       ['.VPDocFooter', '.vp-doc-footer'],
       ['.VPFooter', '.vp-footer'],
     ],
+  },
+  // a page with neither a sidebar nor an outline: no local nav until the
+  // page has scrolled past the navbar, then a fixed one (a short window, so
+  // the page can scroll)
+  {
+    name: 'page without sidebar or outline',
+    vitepress: '/guide/options.html',
+    path: '/guide/options/',
+    widths: [375, 1280],
+    height: 400,
+    expect: ["!document.querySelector('.VPLocalNav')", "!document.querySelector('.vp-local-nav')"],
+    pairs: [['.VPContent', '#VPContent']],
+  },
+  {
+    name: 'page without sidebar or outline, scrolled',
+    vitepress: '/guide/options.html',
+    path: '/guide/options/',
+    // from 60rem VitePress shows no local nav beside no sidebar
+    widths: [375, 768],
+    height: 400,
+    steps: [['scroll', '100', '100']],
+    expect: [shown('.VPLocalNav'), shown('.vp-local-nav')],
+    pairs: [
+      ['.VPLocalNav', '.vp-local-nav'],
+      ['.VPContent', '#VPContent'],
+    ],
+  },
+  // the home page: the hero, the features (four to a row from 60rem), the
+  // markdown below them, the footer; the navbar transparent until scrolled
+  {
+    name: 'home',
+    vitepress: '/index.html',
+    path: '/',
+    widths: [375, 640, 768, 960, 1280, 1440],
+    pairs: [
+      ['.VPNav', '.vp-nav'],
+      ['.VPContent', '#VPContent'],
+      ['.VPFooter', '.vp-footer'],
+    ],
+  },
+  {
+    name: 'home, scrolled',
+    vitepress: '/index.html',
+    path: '/',
+    widths: [375, 1280],
+    steps: [['scroll', '200', '200']],
+    expect: [
+      "scrollY === 200 && !document.querySelector('.VPNavBar').classList.contains('top')",
+      "scrollY === 200 && !document.querySelector('.vp-nav-bar').classList.contains('vp-nav-bar--top')",
+    ],
+    pairs: [['.VPNav', '.vp-nav']],
   },
   {
     name: 'nav screen, groups open',
@@ -197,17 +248,23 @@ const known = [
     reason: "the spacer takes the aside's free height, which vitepress.dev's Carbon ads share below it",
   },
   {
-    check: /^(aside|local nav, outline open|nav|doc footer)/,
+    check: /^(aside|local nav, outline open|nav|doc footer|home|page without)/,
     element: /./,
-    prop: /^(box y|box height|height|bottom|top)$/,
+    prop: /^(box y|box height|height|bottom|top|transform)$/,
     within: 0.25,
-    reason: "VitePress's minified CSS rounds line heights to six digits (2.2857143 to 2.28571, 1.3333333 to 1.33333), so each such line (the outline's, the menus', a heading's, the doc footer's) is 1/64px shorter there and what follows sits higher; vpkit keeps the source values",
+    reason: "VitePress's minified CSS rounds line heights to six digits (2.2857143 to 2.28571, 1.3333333 to 1.33333), so each such line (the outline's, the menus', a heading's, the doc footer's, the hero's) is 1/64px shorter there and what follows sits higher, or what is centered on it (the hero image's translate(-50%)) moves; vpkit keeps the source values",
   },
   {
-    check: /^nav/,
+    check: /^(nav|home)/,
     element: / > img\[0\]$/,
     prop: /^vertical-align$/,
     reason: "Tailwind's preflight gives an img vertical-align: middle where VitePress leaves baseline; the logo is a flex item, which vertical-align does not move",
+  },
+  {
+    check: /^home/,
+    element: /^div\.VPContent > div\[0\] > div\[0\] > div\[0\] > div\[1\] > div\[0\] > img\[1\]$/,
+    prop: /^vertical-align$/,
+    reason: "the same preflight rule on the hero image, which is absolutely positioned: vertical-align does not move it",
   },
 ];
 
@@ -275,6 +332,16 @@ async function step(page, action, selector, away) {
 async function describe(page, selector, drop) {
   return page.evaluate(
     ([selector, drop, props, pseudoProps]) => {
+      // lay the page out afresh first: after VitePress's hydration Chromium
+      // can keep reporting an auto margin it computed before (0px where the
+      // box is centered), until its element is laid out again
+      const html = document.documentElement;
+      const y = scrollY;
+      html.style.setProperty('width', `${html.clientWidth - 1}px`);
+      void html.offsetWidth;
+      html.style.removeProperty('width');
+      void html.offsetWidth;
+      if (scrollY !== y) scrollTo(0, y);
       const root = document.querySelector(selector);
       if (!root) throw new Error(`no ${selector}`);
       const out = [];
@@ -306,6 +373,17 @@ async function describe(page, selector, drop) {
   );
 }
 
+// the same value but for its numbers (a length, a matrix(…)), each within
+const NUMBER = /-?\d+(?:\.\d+)?(?:e-?\d+)?/g;
+function numbersWithin(a, b, within) {
+  const [na, nb] = [String(a).match(NUMBER) ?? [], String(b).match(NUMBER) ?? []];
+  return (
+    String(a).replace(NUMBER, '#') === String(b).replace(NUMBER, '#') &&
+    na.length === nb.length && na.length > 0 &&
+    na.every((n, i) => Math.abs(parseFloat(n) - parseFloat(nb[i])) <= within)
+  );
+}
+
 const failures = [];
 const expected = [];
 let compared = 0;
@@ -322,7 +400,8 @@ try {
       const run = `${c.name} [${width}px${dark ? ' dark' : ''}]`;
       const sides = {};
       for (const side of ['upstream', 'theme']) {
-        const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: 'light' });
+        const height = c.height ?? 900;
+        const context = await browser.newContext({ viewport: { width, height }, colorScheme: 'light' });
         await routes(context, site.out);
         if (dark) await context.addInitScript(() => localStorage.setItem('vitepress-theme-appearance', 'dark'));
         const page = await context.newPage();
@@ -332,7 +411,7 @@ try {
         await page.goto(url);
         await page.evaluate(() => document.fonts.ready);
         // hover nothing that reacts, and let what a hover started run out
-        const away = () => page.mouse.move(width - 1, 899);
+        const away = () => page.mouse.move(width - 1, height - 1);
         await away();
         if (side === 'theme' || c.vitepress) await settle(page);
         if (side === 'theme' && c.click) {
@@ -367,7 +446,7 @@ try {
             const k = known.find(
               (k) =>
                 k.check.test(c.name) && k.element.test(x.path) && k.prop.test(prop) &&
-                (k.within === undefined || Math.abs(parseFloat(x.values[prop]) - parseFloat(b[j].values[prop])) <= k.within),
+                (k.within === undefined || numbersWithin(x.values[prop], b[j].values[prop], k.within)),
             );
             if (!k) {
               failures.push(line);
