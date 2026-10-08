@@ -22,9 +22,9 @@ You may use the `<Badge>` tag anywhere in markdown. It is rewritten at build tim
 Code above renders like:
 
 ### Title {{ <vp_badge type="info" text="default" /> }} {#title}
-### Title {{ <vp_badge type="tip" text="^1.9.0" /> }} {#title}
-### Title {{ <vp_badge type="warning" text="beta" /> }} {#title}
-### Title {{ <vp_badge type="danger" text="deprecated" /> }} {#title}
+### Title {{ <vp_badge type="tip" text="^1.9.0" /> }} {#title-1}
+### Title {{ <vp_badge type="warning" text="beta" /> }} {#title-2}
+### Title {{ <vp_badge type="danger" text="deprecated" /> }} {#title-3}
 
 ## Custom Children
 
@@ -34,7 +34,7 @@ Code above renders like:
 ### Title <Badge type="info">custom element</Badge>
 ```
 
-### Title {% <vp_badge type="info"> %}custom element{% </vp_badge> %} {#title}
+### Title {% <vp_badge type="info"> %}custom element{% </vp_badge> %} {#title-4}
 
 ## Customize Type Color
 

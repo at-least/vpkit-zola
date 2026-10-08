@@ -134,15 +134,26 @@ def vitepress_slug(text):
     return s.lower()
 
 
-def convert_inline(line, page_rel):
+def convert_inline(line, page_rel, slugs):
+    """slugs: the page's heading ids so far, VitePress's (markdown-it-anchor
+    numbers a repeated one: title, title-1, …)"""
     heading = re.match(r'^(#{1,6})\s', line)
     had_badge = bool(BADGE.search(re.sub(r'(`+)(.+?)\1', '', line)))
     line = outside_code_spans(line, lambda s: BADGE.sub(badge, s))
-    if heading and had_badge and not re.search(r'\{#[\w-]+\}\s*$', line):
-        # VitePress's id leaves the badge out; Zola's would not
-        text = re.sub(r'\{\{ <vp_badge[^}]*/> \}\}|\{% <vp_badge.*?</vp_badge> %\}', '', line[len(heading.group(0)):])
-        text = re.sub(r'`([^`]*)`', r'\1', text)
-        line = line.rstrip() + ' {#' + vitepress_slug(text) + '}'
+    if heading:
+        own = re.search(r'\{#([\w-]+)\}\s*$', line)
+        if own:
+            slugs.add(own.group(1))
+        else:
+            text = re.sub(r'\{\{ <vp_badge[^}]*/> \}\}|\{% <vp_badge.*?</vp_badge> %\}', '', line[len(heading.group(0)):])
+            slug = vitepress_slug(re.sub(r'`([^`]*)`', r'\1', text))
+            unique, n = slug, 1
+            while unique in slugs:
+                unique, n = f'{slug}-{n}', n + 1
+            slugs.add(unique)
+            if had_badge:
+                # VitePress's id leaves the badge out; Zola's would not
+                line = line.rstrip() + ' {#' + unique + '}'
     return outside_code_spans(line, lambda s: convert_links(s, page_rel))
 
 
@@ -257,6 +268,7 @@ def convert_body(text, page_rel, offset=0):
     out = []
     lines = text.split('\n')
     stack = []  # open containers: (colons, closing lines)
+    slugs = set()
     in_group = False
     i = 0
     while i < len(lines):
@@ -304,7 +316,7 @@ def convert_body(text, page_rel, offset=0):
                     body.append(lines[j])
                     j += 1
                 out.append(f'{indent}> [!{name.upper()}]')
-                out += [f'{indent}> {convert_inline(b[len(indent):], page_rel)}' for b in body]
+                out += [f'{indent}> {convert_inline(b[len(indent):], page_rel, slugs)}' for b in body]
                 i = j + 1
                 continue
             elif name in CONTAINERS:
@@ -335,7 +347,7 @@ def convert_body(text, page_rel, offset=0):
             raise SystemExit(f'{page_rel}:{offset + i + 1}: include')
         if re.match(r'^\s*<script\b', line):
             raise SystemExit(f'{page_rel}:{offset + i + 1}: script')
-        line = convert_inline(line, page_rel)
+        line = convert_inline(line, page_rel, slugs)
         if needs_raw(re.sub(r'\{\{ <vp_badge.*?/> \}\}|\{% <vp_badge.*?</vp_badge> %\}', '', re.sub(r'\{#[\w-]+\}\s*$', '', line) if re.match(r'^#{1,6}\s', line) else line)):
             line = '{% raw %}' + line + '{% endraw %}'
         out.append(line)
