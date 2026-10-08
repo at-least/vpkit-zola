@@ -2,7 +2,7 @@
 
 A [Zola](https://www.getzola.org) theme with VitePress's look, built on [vpkit](https://github.com/at-least/vpkit). A docs site needs only `zola` (0.23.6 or later): the theme ships its stylesheet, fonts and script prebuilt, so there is no Node.js and no build step.
 
-Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens), the aside with the outline, the doc footer, the site footer, the home page, the 404 page, the local search and sites in several languages, as VitePress renders them.
+Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens), the aside with the outline, the doc footer, the site footer, the home page, the 404 page, the local search, sites in several languages, sidebars by path, and VitePress's custom containers, badges and code groups in markdown, as VitePress renders them. `demo/` is rustpress's documentation rendered by the theme (`cd demo && zola serve`).
 
 ## Use
 
@@ -223,7 +223,8 @@ git clone https://github.com/at-least/vpkit ../vpkit
 npm install
 npm run build   # static/vpkit-zola.css and static/fonts/, from css/ and vpkit
 npm test        # static/ is up to date, then the browser checks
-zola serve      # this repository is the theme's demo site too
+zola serve      # this repository's own site: the markdown parity page
+cd demo && zola serve   # the demo (demo/README.md)
 ```
 
 `npm test` builds sites with zola and renders them in headless Chromium:
@@ -232,6 +233,8 @@ zola serve      # this repository is the theme's demo site too
 - `test/layout.mjs`, on `test/parity-site` (vitepress.dev's guide sidebar and the headings of its getting-started page, a navbar, and a Chinese locale with vitepress.dev's labels): the sidebar, the local nav and the aside against vitepress.dev as VitePress rendered it in a browser (vpkit's snapshots, with the site's own stylesheets), opened as the snapshots were where they show a click (the sidebar on a phone, the outline dropdown); the navbar, the nav screen, the language menu, the doc footer, the footer, the home page, the 404 page, the search box and the Chinese pages against `test/vitepress-build`, VitePress's build of the same site, both running their scripts and given the same hovers, clicks and scrolls; at widths around each breakpoint (for the navbar, where what fits the bar changes) and in dark mode.
 - `test/search.mjs`: the local search's index for each language of `test/parity-site` against the one VitePress built for the same locale, section by section and term by term.
 - `test/behavior.mjs`, on `test/parity-site`: what the script does, step by step: the sidebar opening and closing (Escape gives the focus back, the backdrop closes it), a section collapsing, the outline dropdown closing on Escape or a click outside, the aside's active heading as the page scrolls; and, next to `test/vitepress-build` with the same steps and required to end the same, the appearance switch (what it stores, following the OS and other tabs), a flyout by mouse, keyboard and touch, the nav screen, the language menu (its links keeping the page's hash) and its accordion on a phone, the search box (shortcuts, keys, the query kept, back, Enter), a code group's tabs, a Chinese page's alert and container titles and copy button.
+
+- `test/demo.mjs`: `demo/` builds, its pages without VitePress syntax left unconverted.
 
 `test/vitepress-site` is `test/parity-site` written for VitePress; `test/vitepress-build` is its build by VitePress v2.0.0-alpha.20, the version vpkit ports, committed so the tests need no VitePress. After changing the site, rebuild it from a clone of VitePress at that tag with its dependencies installed and built (the tests refuse a stale build):
 
@@ -245,4 +248,4 @@ The CSS is compiled unminified: Tailwind's minifier rounds `line-height: 1.33333
 
 ## License
 
-MIT (`LICENSE`). The prebuilt stylesheet holds vpkit's CSS, which ports VitePress's (MIT, `LICENSE-VitePress`; `content/parity/markdown.md` is VitePress's guide text, `test/vitepress-build` VitePress's build and the logo in the test sites VitePress's), Lucide's icons (ISC, `LICENSE-Lucide`) and Simple Icons' (CC0-1.0). `static/vendor/minisearch.js` is MiniSearch (MIT, `LICENSE-MiniSearch`). The fonts in `static/fonts/` are Inter, under the SIL Open Font License 1.1 (`LICENSE-Inter`).
+MIT (`LICENSE`). The prebuilt stylesheet holds vpkit's CSS, which ports VitePress's (MIT, `LICENSE-VitePress`; `content/parity/markdown.md` is VitePress's guide text, `test/vitepress-build` VitePress's build and the logo in the test sites VitePress's), Lucide's icons (ISC, `LICENSE-Lucide`) and Simple Icons' (CC0-1.0). `static/vendor/minisearch.js` is MiniSearch (MIT, `LICENSE-MiniSearch`). `demo/content` is rustpress's documentation (MIT), which follows VitePress's. The fonts in `static/fonts/` are Inter, under the SIL Open Font License 1.1 (`LICENSE-Inter`).

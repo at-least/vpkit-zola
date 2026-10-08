@@ -1,0 +1,55 @@
+# vpkit-zola's demo: rustpress's documentation (github.com/at-least/rustpress,
+# docs/), written in VitePress's markdown, converted for Zola and this theme
+# (README.md). zola serve here; base_url is where it would be published.
+base_url = "http://127.0.0.1:1111"
+title = "rustpress"
+description = "A standalone documentation site generator in Rust that speaks VitePress's content format."
+theme = "vpkit-zola"
+compile_sass = false
+build_search_index = false
+
+[markdown]
+github_alerts = true
+bottom_footnotes = true
+insert_anchor_links = "right"
+external_links_target_blank = true
+external_links_no_referrer = true
+render_emoji = true
+
+[markdown.highlighting]
+style = "inline"
+light_theme = "github-light"
+dark_theme = "github-dark"
+
+[extra]
+logo = "/logo.svg"
+nav = [{ text = "Guide", link = "@/guide/what-is-rustpress.md", active_match = "/guide/" }, { text = "Reference", link = "@/reference/site-config.md", active_match = "/reference/" }, { text = "0.1.0", items = [{ text = "Changelog", link = "https://github.com/at-least/rustpress/commits/main" }, { text = "Feature parity with VitePress", link = "https://github.com/at-least/rustpress/blob/main/FEATURE-PARITY.md" }] }]
+social_links = [{ icon = "github", link = "https://github.com/at-least/rustpress" }]
+edit_link = { pattern = "https://github.com/at-least/vpkit-zola/edit/main/demo/content/:path", text = "Edit this page on GitHub" }
+last_updated = true
+footer = { message = "Released under the MIT License.", copyright = "Copyright © 2026-present newlix" }
+outline = [2, 3]
+outline_label = "On this page"
+search = true
+
+[[extra.sidebar."/guide/"]]
+text = "Introduction"
+collapsed = false
+items = [{ text = "What is rustpress?", link = "@/guide/what-is-rustpress.md" }, { text = "Getting Started", link = "@/guide/getting-started.md" }, { text = "Routing", link = "@/guide/routing.md" }, { text = "Deploy", link = "@/guide/deploy.md" }]
+
+[[extra.sidebar."/guide/"]]
+text = "Writing"
+collapsed = false
+items = [{ text = "Markdown Extensions", link = "@/guide/markdown.md" }, { text = "Asset Handling", link = "@/guide/asset-handling.md" }, { text = "Frontmatter", link = "@/guide/frontmatter.md" }, { text = "Internationalization", link = "@/guide/i18n.md" }]
+
+[[extra.sidebar."/guide/"]]
+text = "Customization"
+collapsed = false
+items = [{ text = "Sitemap Generation", link = "@/guide/sitemap-generation.md" }, { text = "Coming from VitePress", link = "@/guide/coming-from-vitepress.md" }]
+
+[[extra.sidebar."/guide/"]]
+items = [{ text = "Config Reference", link = "@/reference/site-config.md" }]
+
+[[extra.sidebar."/reference/"]]
+text = "Reference"
+items = [{ text = "Site Config", link = "@/reference/site-config.md" }, { text = "Frontmatter Config", link = "@/reference/frontmatter-config.md" }, { text = "CLI", link = "@/reference/cli.md" }, { text = "Default Theme", items = [{ text = "Overview", link = "@/reference/default-theme-config.md" }, { text = "Nav", link = "@/reference/default-theme-nav.md" }, { text = "Sidebar", link = "@/reference/default-theme-sidebar.md" }, { text = "Home Page", link = "@/reference/default-theme-home-page.md" }, { text = "Footer", link = "@/reference/default-theme-footer.md" }, { text = "Layout", link = "@/reference/default-theme-layout.md" }, { text = "Badge", link = "@/reference/default-theme-badge.md" }, { text = "Prev / Next Links", link = "@/reference/default-theme-prev-next-links.md" }, { text = "Edit Link", link = "@/reference/default-theme-edit-link.md" }, { text = "Last Updated Timestamp", link = "@/reference/default-theme-last-updated.md" }, { text = "Search", link = "@/reference/default-theme-search.md" }] }]

@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs --check && node test/render.mjs && node test/search.mjs && node test/layout.mjs && node test/behavior.mjs"
+    "test": "node scripts/build.mjs --check && node test/render.mjs && node test/search.mjs && node test/layout.mjs && node test/behavior.mjs && node test/demo.mjs"
   },
   "devDependencies": {
     "@iconify-json/simple-icons": "1.2.93",
