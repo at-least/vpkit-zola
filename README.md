@@ -28,7 +28,7 @@ light_theme = "github-light"   # any Giallo theme, or one `theme` for both
 dark_theme = "github-dark"
 ```
 
-`github_alerts`, `bottom_footnotes`, `insert_anchor_links` and `style` are required: the templates stop the build and say which one is missing.
+`github_alerts`, `bottom_footnotes`, `insert_anchor_links` and `style` are required, and `data_attr_position` must stay at its default, `"code"`: the templates stop the build and say which setting is wrong.
 
 ## How it works
 

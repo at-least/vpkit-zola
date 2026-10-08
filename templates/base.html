@@ -5,6 +5,9 @@
 {%- if config.markdown.highlighting.style != "inline" -%}
 {{ throw(message=`vpkit-zola: set style = "inline" under [markdown.highlighting]: the theme switches Giallo's inline light-dark() colors with the page's appearance`) }}
 {%- endif -%}
+{%- if config.markdown.highlighting.data_attr_position != "code" -%}
+{{ throw(message=`vpkit-zola: leave data_attr_position at "code" under [markdown.highlighting]: the theme finds each code block's language on its code element`) }}
+{%- endif -%}
 {%- if not config.markdown.github_alerts -%}
 {{ throw(message=`vpkit-zola: set github_alerts = true under [markdown]: the theme renders alerts as VitePress's custom blocks`) }}
 {%- endif -%}
