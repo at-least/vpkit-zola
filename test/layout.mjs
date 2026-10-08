@@ -135,6 +135,36 @@ const checks = [
     expect: [shown('#VPNavScreen'), shown('#VPNavScreen')],
     pairs: [['.VPNav', '.vp-nav']],
   },
+  // the doc footer: the edit link, the last updated time, the pages
+  // before and after, on a page in the sidebar, on one outside it (the
+  // home page: no previous, the sidebar's first as next), and on one that
+  // sets the options, without a sidebar, so the site's footer shows
+  {
+    name: 'doc footer',
+    ...NAV_PAGE,
+    widths: [375, 640, 960, 1280],
+    pairs: [
+      ['.VPDocFooter', '.vp-doc-footer'],
+      ['.VPFooter', '.vp-footer'],
+    ],
+  },
+  {
+    name: 'doc footer, outside the sidebar',
+    vitepress: '/index.html',
+    path: '/',
+    widths: [375, 1280],
+    pairs: [['.VPDocFooter', '.vp-doc-footer']],
+  },
+  {
+    name: 'doc footer and footer, page options',
+    vitepress: '/guide/options.html',
+    path: '/guide/options/',
+    widths: [375, 768, 1280],
+    pairs: [
+      ['.VPDocFooter', '.vp-doc-footer'],
+      ['.VPFooter', '.vp-footer'],
+    ],
+  },
   {
     name: 'nav screen, groups open',
     ...NAV_PAGE,
@@ -167,11 +197,11 @@ const known = [
     reason: "the spacer takes the aside's free height, which vitepress.dev's Carbon ads share below it",
   },
   {
-    check: /^(aside|local nav, outline open|nav)/,
+    check: /^(aside|local nav, outline open|nav|doc footer)/,
     element: /./,
     prop: /^(box y|box height|height|bottom|top)$/,
     within: 0.25,
-    reason: "VitePress's minified CSS has line-height 2.28571 for its 2.2857143, so each line of the outline and of the menus is 1/64px shorter there; vpkit keeps the source value",
+    reason: "VitePress's minified CSS rounds line heights to six digits (2.2857143 to 2.28571, 1.3333333 to 1.33333), so each such line (the outline's, the menus', a heading's, the doc footer's) is 1/64px shorter there and what follows sits higher; vpkit keeps the source values",
   },
   {
     check: /^nav/,
@@ -259,7 +289,12 @@ async function describe(page, selector, drop) {
           if (ps.content === 'none' || ps.content === 'normal') continue;
           for (const p of pseudoProps) v[`${pseudo} ${p}`] = ps.getPropertyValue(p);
         }
-        const kids = [...el.children].filter((c) => !c.hidden && !(drop && c.matches(drop)));
+        // a <bdi> is walked through: VitePress after v2.0.0-alpha.20 wraps
+        // texts in them (vitepress.dev, and the theme as it does), the tag
+        // does not, and around left-to-right text they change nothing
+        const kids = [...el.children]
+          .flatMap((c) => (c.tagName === 'BDI' ? [...c.children] : [c]))
+          .filter((c) => !c.hidden && !(drop && c.matches(drop)));
         if (!kids.length) v.text = el.textContent.replace(/\s+/g, ' ').trim();
         out.push({ path, values: v });
         kids.forEach((c, i) => walk(c, `${path} > ${c.tagName.toLowerCase()}[${i}]`));

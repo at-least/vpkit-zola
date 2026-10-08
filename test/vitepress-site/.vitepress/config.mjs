@@ -3,7 +3,10 @@
 // test/vitepress-build, the reference the tests run next to the theme.
 export default {
   title: 'VitePress',
+  lastUpdated: true,
   themeConfig: {
+    editLink: { pattern: 'https://github.com/vuejs/vitepress/edit/main/docs/en/:path', text: 'Edit this page on GitHub' },
+    footer: { message: 'Released under the MIT License.', copyright: 'Copyright © 2019-present Evan You' },
     logo: { src: '/vitepress-logo-mini.svg', width: 24, height: 24 },
     nav: [
       { text: 'Guide', link: '/guide/getting-started', activeMatch: '/guide/' },

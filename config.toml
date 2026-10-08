@@ -39,6 +39,12 @@ mobile_menu_label = "Menu"
 dark_mode_switch_label = "Appearance"
 dark_mode_switch_title = "Switch to dark theme"
 light_mode_switch_title = "Switch to light theme"
+edit_link = { pattern = "https://github.com/at-least/vpkit-zola/edit/main/content/:path", text = "Edit this page on GitHub" }
+last_updated = true
+last_updated_text = "Last updated"
+doc_footer_prev = "Previous page"
+doc_footer_next = "Next page"
+footer = { message = "Released under the MIT License." }
 
 [[extra.sidebar]]
 text = "Introduction"

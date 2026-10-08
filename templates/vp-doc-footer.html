@@ -1,0 +1,86 @@
+{#- vp_doc_footer: VitePress's VPDocFooter under the doc, with vpkit's
+    class names: the edit link (edit_link = { pattern, text }, :path the
+    page's file under content/), the time it was last updated (with
+    last_updated = true, its `updated`; the script writes it in the
+    reader's language), and the pages before and after it in the sidebar.
+    doc: the page or section; current: its current_url. Its [extra] can set
+    edit_link = false, last_updated = false, and prev and next: false, a
+    text, or { text, link }. Rendered whenever VitePress renders it: with a
+    previous or next page not turned off, even when there is none. -#}
+{% component vp_doc_footer(doc, site, current) -%}
+{%- set own = doc.extra -%}
+{%- set has_edit_link = site.edit_link.pattern is defined and not (own.edit_link is defined and own.edit_link == false) -%}
+{%- set has_last_updated = site.last_updated and doc.updated is defined and doc.updated and not (own.last_updated is defined and own.last_updated == false) -%}
+{#- getFlatSideBarLinks and usePrevNext: the sidebar's links in order, one
+    per page (the first; a hash does not count), the page's place among
+    them; a null closes the list -#}
+{%- set flat -%}{{ <vp_flat_links items={site.sidebar if site.sidebar | length > 0 and not (own.sidebar is defined and own.sidebar == false) else []} /> }}{%- endset -%}
+{%- set links = load_data(literal="[" ~ flat ~ "null]", format="json") | unique(attribute="key") -%}
+{%- set found -%}{%- for link in links -%}{%- if link -%}{%- if link.key == current -%}{{ loop.index0 }}{% break %}{%- endif -%}{%- endif -%}{%- endfor -%}{%- endset -%}
+{%- set index = found | int if found else -1 -%}
+{%- set before = links[index - 1] if index > 0 else false -%}
+{%- set after = links[index + 1] -%}
+{%- set hide_prev = (site.doc_footer_prev == false and not (own.prev is defined and own.prev)) or (own.prev is defined and own.prev == false) -%}
+{%- set hide_next = (site.doc_footer_next == false and not (own.next is defined and own.next)) or (own.next is defined and own.next == false) -%}
+{%- set prev -%}{% if not hide_prev %}{{ <vp_pager_target own={own.prev if own.prev is defined else false} link={before} /> }}{% endif %}{%- endset -%}
+{%- set next -%}{% if not hide_next %}{{ <vp_pager_target own={own.next if own.next is defined else false} link={after} /> }}{% endif %}{%- endset -%}
+{%- set prev = load_data(literal=prev, format="json") if prev else false -%}
+{%- set next = load_data(literal=next, format="json") if next else false -%}
+{%- if has_edit_link or has_last_updated or not hide_prev or not hide_next -%}
+<footer class="vp-doc-footer">
+  {%- if has_edit_link or has_last_updated -%}
+  <div class="vp-doc-footer__edit-info">
+    {%- if has_edit_link -%}
+    <div><a href="{{ site.edit_link.pattern | replace(from=':path', to=doc.relative_path) }}" target="_blank" rel="noreferrer" class="vp-external-link-icon no-icon vp-doc-footer__edit-link-button"><span class="vpi-square-pen vp-doc-footer__edit-link-icon"></span> {{ site.edit_link.text if site.edit_link.text is defined else "Edit this page" }}</a></div>
+    {%- endif -%}
+    {%- if has_last_updated -%}
+    {#- vitepress.dev's markup, and the space its <bdi> lost: VitePress
+        v2.0.0-alpha.20 writes "Last updated: " as text -#}
+    <div><p class="vp-last-updated"><bdi>{{ site.last_updated_text }}:</bdi> <time dir="auto" datetime="{{ doc.updated }}"></time></p></div>
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+  {%- if (prev and prev.link) or (next and next.link) -%}
+  <nav aria-labelledby="doc-footer-aria-label" class="vp-doc-footer__prev-next"><span id="doc-footer-aria-label" class="visually-hidden">Pager</span>
+    {#- #}<div>{% if prev and prev.link %}<a href="{{ prev.link }}"{% if prev.external %} target="_blank" rel="noreferrer"{% endif %} class="vp-doc-footer__pager-link{% if prev.external %} vp-external-link-icon{% endif %}"><span class="vp-doc-footer__desc">{{ (site.doc_footer_prev or "Previous page") | safe }}</span><span class="vp-doc-footer__title"><bdi>{{ prev.text | safe }}</bdi></span></a>{% endif %}</div>
+    <div>{% if next and next.link %}<a href="{{ next.link }}"{% if next.external %} target="_blank" rel="noreferrer"{% endif %} class="vp-doc-footer__pager-link vp-doc-footer__next{% if next.external %} vp-external-link-icon{% endif %}"><span class="vp-doc-footer__desc">{{ (site.doc_footer_next or "Next page") | safe }}</span><span class="vp-doc-footer__title"><bdi>{{ next.text | safe }}</bdi></span></a>{% endif %}</div>
+  </nav>
+  {%- endif -%}
+</footer>
+{%- endif -%}
+{%- endcomponent vp_doc_footer %}
+
+{#- the sidebar's links in order, as JSON objects each followed by a comma:
+    key, the URL without its hash; url; text, doc_footer_text if the item
+    has one; external -#}
+{% component vp_flat_links(items) -%}
+{%- for item in items -%}
+{%- if item.link is defined -%}
+{%- set external = item.link is matching(pat="^(?:[a-z]+:|//)") -%}
+{%- set url = item.link if external else get_url(path=item.link) -%}
+{"key":{{ url | split(pat="#") | first | json_encode | safe }},"url":{{ url | json_encode | safe }},"text":{{ (item.doc_footer_text if item.doc_footer_text is defined else item.text) | json_encode | safe }},"external":{{ external }}},
+{%- endif -%}
+{%- if item.items is defined -%}{{ <vp_flat_links items={item.items} /> }}{%- endif -%}
+{%- endfor -%}
+{%- endcomponent vp_flat_links %}
+
+{#- usePrevNext's prev or next, as JSON: the page's own setting (a text,
+    or { text, link }) over the sidebar's neighbor (link, or false) -#}
+{% component vp_pager_target(own, link) -%}
+{%- set own_link = own.link if own is not string and own and own.link is defined else "" -%}
+{%- set own_external = own_link is matching(pat="^(?:[a-z]+:|//)") -%}
+{%- set text = own if own is string else (own.text if own and own.text is defined else (link.text if link else "")) -%}
+{%- set url = (own_link if own_external else get_url(path=own_link)) if own_link else (link.url if link else "") -%}
+{"text":{{ text | json_encode | safe }},"link":{{ url | json_encode | safe }},"external":{{ own_external if own_link else (link.external if link else false) }}}
+{%- endcomponent vp_pager_target %}
+
+{#- VPFooter: footer = { message?, copyright? } (HTML), at the foot of a
+    page; hidden beside a sidebar; a page can set footer = false -#}
+{% component vp_footer(site, own, has_sidebar) -%}
+{%- if (site.footer.message is defined or site.footer.copyright is defined) and not (own.footer is defined and own.footer == false) -%}
+<footer class="vp-footer{% if has_sidebar %} vp-footer--has-sidebar{% endif %}"><div class="vp-footer__container">
+  {%- if site.footer.message is defined %}<p class="vp-footer__message"><bdi>{{ site.footer.message | safe }}</bdi></p>{% endif -%}
+  {%- if site.footer.copyright is defined %}<p class="vp-footer__copyright"><bdi>{{ site.footer.copyright | safe }}</bdi></p>{% endif -%}
+</div></footer>
+{%- endif -%}
+{%- endcomponent vp_footer %}

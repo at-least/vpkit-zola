@@ -45,7 +45,7 @@ const SIDES = {
       screen: '#VPNavScreen',
       screenGroupButton: '.VPNavScreenMenuGroup > .button',
       screenLink: '.VPNavScreen .VPNavScreenMenuLink',
-      covered: ['.VPSkipLink', '.VPLocalNav', '.VPSidebar', '.VPContent'],
+      covered: ['.VPSkipLink', '.VPLocalNav', '.VPSidebar', '.VPContent', '.VPFooter'],
     },
   },
   theme: {
@@ -59,7 +59,7 @@ const SIDES = {
       screen: '#VPNavScreen',
       screenGroupButton: '.vp-nav-menu-group--screen > .vp-nav-menu-group__button',
       screenLink: '.vp-nav-screen .vp-nav-menu-link--screen',
-      covered: ['.vp-skip-link', '.vp-local-nav', '.vp-sidebar', '#VPContent'],
+      covered: ['.vp-skip-link', '.vp-local-nav', '.vp-sidebar', '#VPContent', '.vp-footer'],
     },
   },
 };

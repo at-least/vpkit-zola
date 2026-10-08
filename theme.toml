@@ -28,6 +28,16 @@ homepage = "https://github.com/at-least"
 #   codeberg, discord, facebook, github, gitlab, instagram, linkedin,
 #   mastodon, npm, slack, twitter, x, youtube.
 # - appearance: the light/dark switch (true), or always light (false).
+# - edit_link: { pattern, text? } for a link under each doc, :path in the
+#   pattern its file under content/ (guide/intro.md); {}: none.
+# - last_updated: the time a doc's `updated` front matter gives, under it,
+#   labeled last_updated_text.
+# - doc_footer_prev, doc_footer_next: the labels of the links to the
+#   sidebar's previous and next pages; false: none.
+# - footer: { message?, copyright? } (HTML) at the foot of pages without a
+#   sidebar; {}: none.
+# A doc's [extra] can set edit_link, last_updated and footer to false, and
+# prev and next to false, a text or { text, link }.
 [extra]
 sidebar = []
 outline = 2
@@ -43,3 +53,9 @@ mobile_menu_label = "Menu"
 dark_mode_switch_label = "Appearance"
 dark_mode_switch_title = "Switch to dark theme"
 light_mode_switch_title = "Switch to light theme"
+edit_link = {}
+last_updated = false
+last_updated_text = "Last updated"
+doc_footer_prev = "Previous page"
+doc_footer_next = "Next page"
+footer = {}

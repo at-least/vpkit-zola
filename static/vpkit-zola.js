@@ -447,7 +447,7 @@ if (navBar) {
   // 48rem wide. Its groups open in place, all closed each time it opens.
   const hamburger = navBar.querySelector('.vp-nav-bar-hamburger');
   const screen = document.getElementById('VPNavScreen');
-  const covered = document.querySelectorAll('.vp-skip-link, .vp-local-nav, .vp-sidebar, #VPContent');
+  const covered = document.querySelectorAll('.vp-skip-link, .vp-local-nav, .vp-sidebar, #VPContent, .vp-footer');
   let isScreenOpen = false;
   let unlockScreen = null;
 
@@ -699,6 +699,22 @@ if (outline) {
       activateLink(hash);
     }
   });
+}
+
+// ---- the doc footer --------------------------------------------------------------
+
+// VPDocFooterLastUpdated.vue: the last updated time, written on the page in
+// the reader's language (the server knows neither it nor their time zone),
+// with dateStyle and timeStyle medium; a date without a time (Zola's
+// `updated = 2024-01-15`) is that day, wherever the reader is.
+for (const time of document.querySelectorAll('.vp-last-updated time')) {
+  const lang = navigator.language;
+  const day = !time.dateTime.includes('T');
+  time.textContent = new Intl.DateTimeFormat(lang, day ? { dateStyle: 'medium', timeZone: 'UTC' } : { dateStyle: 'medium', timeStyle: 'medium' }).format(
+    new Date(time.dateTime),
+  );
+  if (lang && document.documentElement.lang !== lang) time.setAttribute('lang', lang);
+  else time.removeAttribute('lang');
 }
 
 // ---- copy buttons ----------------------------------------------------------------

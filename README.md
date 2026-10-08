@@ -2,7 +2,7 @@
 
 A [Zola](https://www.getzola.org) theme with VitePress's look, built on [vpkit](https://github.com/at-least/vpkit). A docs site needs only `zola` (0.23.6 or later): the theme ships its stylesheet, fonts and script prebuilt, so there is no Node.js and no build step.
 
-Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens) and the aside with the outline, as VitePress renders them. Not yet: translations, search, the doc footer, the home page.
+Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens), the aside with the outline, the doc footer and the site footer, as VitePress renders them. Not yet: translations, search, the home page.
 
 ## Use
 
@@ -65,6 +65,17 @@ nav = [
 social_links = [{ icon = "github", link = "https://github.com/you/project" }]
 ```
 
+Under each doc, and at the foot of pages without a sidebar:
+
+```toml
+[extra]
+edit_link = { pattern = "https://github.com/you/project/edit/main/content/:path", text = "Edit this page on GitHub" }
+last_updated = true      # a doc's `updated` date (front matter), in the reader's language
+footer = { message = "Released under the MIT License.", copyright = "Copyright © 2026 You" }
+```
+
+`:path` is the doc's file under `content/`. The links to the previous and next pages follow the sidebar's order, as in VitePress; their labels are `doc_footer_prev` ("Previous page") and `doc_footer_next` ("Next page"), `false` for none, and `last_updated_text` ("Last updated") labels the date. A doc's own `[extra]` can set `edit_link`, `last_updated` or `footer` to `false`, and `prev` and `next` to `false`, a text, or `{ text, link }`.
+
 A nav item is a link or a group, a flyout in the bar and a list that opens in place on a phone; a group holds links and titled groups of links. `active_match` is a regular expression tested on the page's path (Zola's `current_path`, such as `/guide/introduction/`); without one, a link is active on its own page. Social link icons are Simple Icons': `bluesky`, `codeberg`, `discord`, `facebook`, `github`, `gitlab`, `instagram`, `linkedin`, `mastodon`, `npm`, `slack`, `twitter`, `x`, `youtube` (`aria_label` overrides the name read out). What does not fit the bar moves into the extra menu (…) as in VitePress: the social links first, then the switch, then menu items from the right. The labels: `nav_menu_label` ("Main Navigation"), `extra_menu_label` ("More options"), `mobile_menu_label` ("Menu"), `dark_mode_switch_label` ("Appearance"), `dark_mode_switch_title` ("Switch to dark theme"), `light_mode_switch_title` ("Switch to light theme").
 
 ## How it works
@@ -77,7 +88,7 @@ Zola renders markdown with its own markup. The theme's templates rewrite it into
 
 What vpkit cannot style, `css/zola.css` does: Giallo's line numbers, and alerts that stay `<blockquote>`s.
 
-The layout is VitePress's components with vpkit's class names (`vpkit/layout.css`): the templates write the markup VitePress's Vue components render, the outline from Zola's table of contents at build time where VitePress fills it in the browser. What Vue renders only in the browser (the extra menu, the nav screen) is in the page, hidden, until the script needs it. `static/vpkit-zola.js` does what those components do on the page, in plain JavaScript: the appearance switch (VueUse's `useDark`, on VitePress's storage key), the flyouts, the navbar's overflow into the extra menu, the nav screen, the sidebar opening over the page on narrow screens, sections collapsing, the outline dropdown, the aside's active heading.
+The layout is VitePress's components with vpkit's class names (`vpkit/layout.css`): the templates write the markup VitePress's Vue components render, the outline from Zola's table of contents at build time where VitePress fills it in the browser. What Vue renders only in the browser (the extra menu, the nav screen) is in the page, hidden, until the script needs it. `static/vpkit-zola.js` does what those components do on the page, in plain JavaScript: the appearance switch (VueUse's `useDark`, on VitePress's storage key), the flyouts, the navbar's overflow into the extra menu, the nav screen, the sidebar opening over the page on narrow screens, sections collapsing, the outline dropdown, the aside's active heading, the last updated date in the reader's language.
 
 The social link icons are built into the stylesheet as VitePress generates its `vp-icons.css`, from `@iconify-json/simple-icons` with Iconify's utilities, for the icons `templates/vp-nav.html` lists.
 
@@ -100,7 +111,7 @@ zola serve      # this repository is the theme's demo site too
 `npm test` builds sites with zola and renders them in headless Chromium:
 
 - `test/render.mjs`, on this site: `content/parity/markdown.md`, VitePress's markdown guide written for Zola, against the page VitePress rendered for vitepress.dev, each `.vp-doc` alone at two widths and in dark mode, every element's computed style, pseudo-elements and box compared; every Giallo token's color, light and dark, with the appearance stored or taken from the OS; the copy button, which must copy the code without its line numbers.
-- `test/layout.mjs`, on `test/parity-site` (vitepress.dev's guide sidebar and the headings of its getting-started page, and a navbar): the sidebar, the local nav and the aside against vitepress.dev as VitePress rendered it in a browser (vpkit's snapshots, with the site's own stylesheets), opened as the snapshots were where they show a click (the sidebar on a phone, the outline dropdown); the navbar and the nav screen against `test/vitepress-build`, VitePress's build of the same site, both running their scripts and given the same hovers, clicks and scrolls; at widths around each breakpoint (for the navbar, where what fits the bar changes) and in dark mode.
+- `test/layout.mjs`, on `test/parity-site` (vitepress.dev's guide sidebar and the headings of its getting-started page, and a navbar): the sidebar, the local nav and the aside against vitepress.dev as VitePress rendered it in a browser (vpkit's snapshots, with the site's own stylesheets), opened as the snapshots were where they show a click (the sidebar on a phone, the outline dropdown); the navbar, the nav screen, the doc footer and the footer against `test/vitepress-build`, VitePress's build of the same site, both running their scripts and given the same hovers, clicks and scrolls; at widths around each breakpoint (for the navbar, where what fits the bar changes) and in dark mode.
 - `test/behavior.mjs`, on `test/parity-site`: what the script does, step by step: the sidebar opening and closing (Escape gives the focus back, the backdrop closes it), a section collapsing, the outline dropdown closing on Escape or a click outside, the aside's active heading as the page scrolls; and, next to `test/vitepress-build` with the same steps and required to end the same, the appearance switch (what it stores, following the OS and other tabs), a flyout by mouse, keyboard and touch, the nav screen.
 
 `test/vitepress-site` is `test/parity-site` written for VitePress; `test/vitepress-build` is its build by VitePress v2.0.0-alpha.20, the version vpkit ports, committed so the tests need no VitePress. After changing the site, rebuild it from a clone of VitePress at that tag with its dependencies installed and built (the tests refuse a stale build):
