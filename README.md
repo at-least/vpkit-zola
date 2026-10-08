@@ -184,7 +184,7 @@ The social link icons are built into the stylesheet as VitePress generates its `
 
 Code colors are Giallo's, from the themes the site picks. Giallo writes each token's two colors inline as `light-dark()`; the theme ties them to the page's appearance (VitePress's `html.dark`, set by the stored choice or the OS) instead of the OS alone. The code block background stays vpkit's.
 
-Known differences from VitePress: the language label shows Giallo's name for the language (`javascript` where VitePress shows the fence's `js`), and Zola's markdown has no inline footnotes, containers (`::: tip`), code groups or line notations (`// [!code focus]`).
+Known differences from VitePress: the language label shows Giallo's name for the language (`javascript` where VitePress shows the fence's `js`); Zola's markdown has no inline footnotes, containers (`::: tip`), code groups or line notations (`// [!code focus]`); and a link within the page (the outline's, a heading's anchor) is the browser's, which leaves the focus on the link where VitePress's router moves it to the heading (as the theme does for a search result).
 
 ## Develop
 
