@@ -875,6 +875,12 @@
 [lang]:where(:lang(zh), :lang(ja), :lang(ko)) h1, [lang]:where(:lang(zh), :lang(ja), :lang(ko))  h2, [lang]:where(:lang(zh), :lang(ja), :lang(ko))  h3, [lang]:where(:lang(zh), :lang(ja), :lang(ko))  h4, [lang]:where(:lang(zh), :lang(ja), :lang(ko))  h5, [lang]:where(:lang(zh), :lang(ja), :lang(ko))  h6, [lang]:where(:lang(zh), :lang(ja), :lang(ko))  li, [lang]:where(:lang(zh), :lang(ja), :lang(ko))  p {
   line-break: strict;
 }
+:root:is(.dark) {
+  color-scheme: dark;
+}
+:root:not(.dark) {
+  color-scheme: light;
+}
 b, strong {
   font-weight: 600;
 }
@@ -1831,12 +1837,6 @@ button:focus-visible {
   }
 }
 @layer base {
-  :root:is(.dark) {
-    color-scheme: dark;
-  }
-  :root:not(.dark) {
-    color-scheme: light;
-  }
   body {
     color: var(--vp-c-text-1);
     background-color: var(--vp-c-bg);

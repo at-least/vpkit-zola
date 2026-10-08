@@ -3,17 +3,9 @@
  * Code colors are Giallo's, as the site's [markdown.highlighting] picks
  * them; vpkit has none of its own. */
 
-/* The page around vpkit's layout: VitePress's base.css rules for :root
-   and body, which vpkit leaves to the site that uses it. */
+/* The page around vpkit's layout: VitePress's base.css rules for body,
+   which vpkit leaves to the site that uses it. */
 @layer base {
-  :root:is(.dark) {
-    color-scheme: dark;
-  }
-
-  :root:not(.dark) {
-    color-scheme: light;
-  }
-
   body {
     color: var(--vp-c-text-1);
     background-color: var(--vp-c-bg);
