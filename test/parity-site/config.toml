@@ -57,6 +57,7 @@ social_links = [
 ]
 edit_link = { pattern = "https://github.com/vuejs/vitepress/edit/main/docs/en/:path", text = "Edit this page on GitHub" }
 last_updated = true
+search = true
 footer = { message = "Released under the MIT License.", copyright = "Copyright © 2019-present Evan You" }
 
 [[extra.sidebar]]

@@ -26,6 +26,7 @@
     <meta name="description" content="{% block description %}{{ config.description or "" }}{% endblock description %}">
     <link rel="stylesheet" href="{{ get_url(path='vpkit-zola.css') }}">
     <link rel="preload" href="{{ get_url(path='fonts/inter-roman-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <script id="check-mac-os">document.documentElement.classList.toggle(`mac`,/Mac|iPhone|iPod|iPad/i.test(navigator.platform))</script>
     {%- if config.extra.appearance %}
     <script id="check-dark-mode">(()=>{let e=localStorage.getItem(`vitepress-theme-appearance`)||`auto`,t=window.matchMedia(`(prefers-color-scheme: dark)`).matches;(!e||e===`auto`?t:e===`dark`)&&document.documentElement.classList.add(`dark`)})();</script>
     {%- endif %}
@@ -40,5 +41,8 @@
         {% block content %}{% endblock content %}
       </div>
     </div>
+    {%- if config.extra.search %}
+    {{ <vp_local_search_box site={config.extra} /> }}
+    {%- endif %}
   </body>
 </html>

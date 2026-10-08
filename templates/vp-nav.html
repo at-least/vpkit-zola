@@ -22,7 +22,16 @@
         {%- if site_title %}<span>{{ site_title | safe }}</span>{% endif -%}
       </a></div></div>
       <div class="vp-nav-bar__content"><div class="vp-nav-bar__content-body">
-        <div class="vp-nav-bar-search vp-nav-bar__search"></div>
+        <div class="vp-nav-bar-search vp-nav-bar__search">
+          {%- if site.search -%}
+          {%- set root = get_section(path="_index.md") -%}
+          {%- set stub -%}{% for page in root.pages %}{% if page.relative_path == "vp-search.md" %}1{% endif %}{% endfor %}{%- endset -%}
+          {%- if not stub -%}
+          {{ throw(message="vpkit-zola: search = true needs content/vp-search.md with template = \"vp-search-index.html\" in its front matter (README)") }}
+          {%- endif -%}
+          <button type="button" aria-label="{{ site.search_button_text }}" aria-keyshortcuts="/ control+k meta+k" data-index="{{ get_url(path='@/vp-search.md') }}" class="vp-nav-bar-search-button"><span aria-hidden="true" class="vpi-search"></span><span class="vp-nav-bar-search-button__text">{{ site.search_button_text }}</span><span aria-hidden="true" class="vp-nav-bar-search-button__keys"><kbd class="vp-nav-bar-search-button__key-mod"></kbd><kbd class="vp-nav-bar-search-button__key-k"></kbd></span></button>
+          {%- endif -%}
+        </div>
         {%- if site.nav | length > 0 %}
         <nav aria-label="{{ site.nav_menu_label }}" class="vp-nav-menu vp-nav-menu--bar vp-nav-bar__menu"><ul class="vp-nav-menu__list">
           {%- for item in site.nav -%}
@@ -174,3 +183,10 @@
 <img src="{{ get_url(path=image.dark) }}" alt="{{ image.alt or '' }}" class="vp-image dark {{ class }}"><img src="{{ get_url(path=image.light) }}" alt="{{ image.alt or '' }}" class="vp-image vp-image--light {{ class }}">
 {%- endif -%}
 {%- endcomponent vp_image %}
+
+{#- VPLocalSearchBox's markup, at the end of the body for the script to
+    show over the page (Vue renders it into the body on opening); its
+    labels from the site's [extra] -#}
+{% component vp_local_search_box(site) -%}
+<template id="vp-local-search-box"><div role="button" aria-expanded="true" aria-haspopup="listbox" aria-labelledby="localsearch-label" class="vp-local-search-box"><div class="vp-local-search-box__backdrop"></div><div class="vp-local-search-box__shell"><form class="vp-local-search-box__search-bar"><label title="{{ site.search_button_text }}" id="localsearch-label" for="localsearch-input"><span aria-hidden="true" class="vpi-search vp-local-search-box__search-icon vp-local-search-box__local-search-icon"></span></label><div class="vp-local-search-box__search-actions vp-local-search-box__before"><button class="vp-local-search-box__back-button" title="Close search"><span class="vpi-arrow-left vp-local-search-box__local-search-icon"></span></button></div><input aria-autocomplete="both" aria-labelledby="localsearch-label" autocapitalize="off" autocomplete="off" autocorrect="off" class="vp-local-search-box__search-input" id="localsearch-input" enterkeyhint="go" maxlength="64" placeholder="{{ site.search_button_text }}" spellcheck="false" type="search"><div class="vp-local-search-box__search-actions"><span class="vp-local-search-box__search-loading" aria-live="polite"></span><button class="vp-local-search-box__toggle-layout-button" type="button" title="Display detailed list"><span class="vpi-layout-list vp-local-search-box__local-search-icon"></span></button><button class="vp-local-search-box__clear-button" type="reset" title="Reset search"><span class="vpi-delete vp-local-search-box__local-search-icon"></span></button></div></form><ul aria-busy="false" class="vp-local-search-box__results"></ul><div class="vp-local-search-box__search-keyboard-shortcuts"><span><kbd aria-label="up arrow"><span class="vpi-arrow-up vp-local-search-box__navigate-icon"></span></kbd><kbd aria-label="down arrow"><span class="vpi-arrow-down vp-local-search-box__navigate-icon"></span></kbd> to navigate</span><span><kbd aria-label="enter"><span class="vpi-corner-down-left vp-local-search-box__navigate-icon"></span></kbd> to select</span><span><kbd aria-label="escape">esc</kbd> to close</span></div></div></div></template>
+{%- endcomponent vp_local_search_box %}

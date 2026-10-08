@@ -1,0 +1,49 @@
+{#- The local search's index, for static/vpkit-zola.js (VitePress's
+    localSearchPlugin, which indexes each page's rendered markdown by
+    section). A site turns search on with search = true under [extra] and
+    this page: content/vp-search.md, front matter template =
+    "vp-search-index.html" (README). It holds, in a JSON script, every
+    page's and section's markdown as the theme renders it (vp_markdown),
+    reduced to its headings with their anchors and its text: the script
+    splits that into sections and indexes them as VitePress does. A page
+    with search = false in its [extra] stays out, as with VitePress's
+    `search: false`. -#}
+<!doctype html>
+<html lang="{{ lang }}">
+<head><meta charset="utf-8"><meta name="robots" content="noindex"><title>{{ config.title }}</title></head>
+<body>
+<script type="application/json" id="vp-search-index">[{{ <vp_search_docs section={get_section(path="_index.md")} /> }}null]</script>
+</body>
+</html>
+
+{#- a section's pages, the section itself and its subsections, as JSON
+    objects each followed by a comma: url, file (under content/: the
+    order VitePress indexes in) and html -#}
+{% component vp_search_docs(section) -%}
+{%- if not (section.extra.search is defined and section.extra.search == false) -%}
+{{ <vp_search_doc doc={section} /> }}
+{%- endif -%}
+{%- for page in section.pages -%}
+{%- if not (page.extra.search is defined and page.extra.search == false) -%}
+{{ <vp_search_doc doc={page} /> }}
+{%- endif -%}
+{%- endfor -%}
+{%- for path in section.subsections -%}
+{{ <vp_search_docs section={get_section(path=path)} /> }}
+{%- endfor -%}
+{%- endcomponent vp_search_docs %}
+
+{#- one doc: its markdown with every tag gone but its headings and their
+    anchors (the text is what VitePress indexes; VitePress finds sections
+    by an anchored heading) -#}
+{% component vp_search_doc(doc) -%}
+{%- set html -%}{{ <vp_markdown html={doc.content} /> }}{%- endset -%}
+{%- set html = html
+  | regex_replace(pattern='<(h[1-6])(?: [^>]*)?>', rep='␞$1␟')
+  | regex_replace(pattern='</(h[1-6])>', rep='␞/$1␟')
+  | regex_replace(pattern='<a class="header-anchor" href="#([^"]*)"[^>]*>&#8203;</a>', rep='␞a href="#$1"␟&#8203;␞/a␟')
+  | striptags
+  | replace(from='␞', to='<')
+  | replace(from='␟', to='>') -%}
+{"url":{{ doc.permalink | json_encode | safe }},"file":{{ doc.relative_path | json_encode | safe }},"html":{{ html | json_encode | safe }}},
+{%- endcomponent vp_search_doc %}

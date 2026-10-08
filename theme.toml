@@ -40,6 +40,8 @@ homepage = "https://github.com/at-least"
 # prev and next to false, a text or { text, link }.
 # - not_found: the 404 page's texts, { code?, title?, quote?, link?,
 #   link_label?, link_text? } (VitePress's notFound).
+# - search: VitePress's local search (true), which needs the index page
+#   content/vp-search.md (README); search_button_text labels it.
 [extra]
 sidebar = []
 outline = 2
@@ -62,3 +64,5 @@ doc_footer_prev = "Previous page"
 doc_footer_next = "Next page"
 footer = {}
 not_found = {}
+search = false
+search_button_text = "Search"

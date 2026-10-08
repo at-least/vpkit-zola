@@ -89,14 +89,14 @@ const checks = [
     drop: '.VPDocAsideCarbonAds, .VPDocAsideSponsors',
   },
   // the navbar where VitePress lays it out differently: on a phone, then
-  // where the parity site's bar has no room for two menu items, the
-  // appearance switch and the social links (768), for one item and both
-  // (880, and 960 beside the sidebar), for both (1120), for the social
-  // links (1200), and where all fits
+  // where the parity site's bar (with the search button) has no room for
+  // three menu items, the appearance switch and the social links (768, and
+  // 960 beside the sidebar), for two items and both (880), one item and
+  // both (1120), both (1280), the social links (1360), and where all fits
   {
     name: 'navbar',
     ...NAV_PAGE,
-    widths: [375, 768, 880, 960, 1120, 1200, 1280, 1440],
+    widths: [375, 768, 880, 960, 1120, 1280, 1360, 1440],
     pairs: [['.VPNav', '.vp-nav']],
   },
   {
@@ -121,7 +121,7 @@ const checks = [
   {
     name: 'navbar, extra menu open',
     ...NAV_PAGE,
-    widths: [768, 960, 1120, 1200],
+    widths: [768, 1120, 1280, 1360],
     // a hover: after a click the pointer moves away, which closes a flyout
     steps: [['hover', '.VPNavBarExtra > .button', '.vp-nav-bar-extra > .vp-flyout__button']],
     expect: [shown('.VPNavBarExtra > .menu'), shown('.vp-nav-bar-extra > .vp-flyout__menu')],

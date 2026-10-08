@@ -46,6 +46,8 @@ doc_footer_prev = "Previous page"
 doc_footer_next = "Next page"
 footer = { message = "Released under the MIT License." }
 not_found = {}
+search = false
+search_button_text = "Search"
 
 [[extra.sidebar]]
 text = "Introduction"

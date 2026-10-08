@@ -1,6 +1,8 @@
 // Build the theme's prebuilt assets from vpkit, the files a docs site
-// serves without Node: static/vpkit-zola.css and static/fonts/ (Inter,
-// which vpkit's fonts.css loads relative to the stylesheet).
+// serves without Node: static/vpkit-zola.css, static/fonts/ (Inter,
+// which vpkit's fonts.css loads relative to the stylesheet) and
+// static/vendor/minisearch.js (MiniSearch's ES module, the local search's
+// index, at the version VitePress locks).
 //
 //   node scripts/build.mjs           write them
 //   node scripts/build.mjs --check   fail if the committed ones differ
@@ -22,6 +24,7 @@ import { getIconsCSSData } from '@iconify/utils/lib/css/icons';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FONTS = join(ROOT, 'node_modules/vpkit/fonts');
+const MINISEARCH = join(ROOT, 'node_modules/minisearch/dist/es/index.js');
 
 // the list vp_social_links checks a site's icons against
 const ICONS = JSON.parse(/\{%- set icons = (\[[^\]]*\]) -%\}/.exec(readFileSync(join(ROOT, 'templates/vp-nav.html'), 'utf8'))[1]);
@@ -46,11 +49,13 @@ function build(out) {
   );
   appendFileSync(join(out, 'vpkit-zola.css'), socialIcons());
   for (const f of readdirSync(FONTS)) copyFileSync(join(FONTS, f), join(out, 'fonts', f));
+  mkdirSync(join(out, 'vendor'), { recursive: true });
+  copyFileSync(MINISEARCH, join(out, 'vendor/minisearch.js'));
 }
 
 // every built file, relative to its directory
 function files(dir) {
-  return ['vpkit-zola.css', ...readdirSync(join(dir, 'fonts')).map((f) => `fonts/${f}`)].sort();
+  return ['vpkit-zola.css', 'vendor/minisearch.js', ...readdirSync(join(dir, 'fonts')).map((f) => `fonts/${f}`)].sort();
 }
 
 if (process.argv[2] === '--check') {

@@ -7,6 +7,7 @@ export default {
   themeConfig: {
     editLink: { pattern: 'https://github.com/vuejs/vitepress/edit/main/docs/en/:path', text: 'Edit this page on GitHub' },
     footer: { message: 'Released under the MIT License.', copyright: 'Copyright © 2019-present Evan You' },
+    search: { provider: 'local' },
     logo: { src: '/vitepress-logo-mini.svg', width: 24, height: 24 },
     nav: [
       { text: 'Guide', link: '/guide/getting-started', activeMatch: '/guide/' },
