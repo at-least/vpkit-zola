@@ -717,6 +717,28 @@ if (outline) {
   });
 }
 
+// ---- the local search -------------------------------------------------------------
+
+// VPNavBarSearch.vue: its button, Ctrl/⌘+K and / (outside a field) open
+// VPLocalSearchBox, static/vpkit-zola-search.js, loaded the first time
+const searchButton = document.querySelector('.vp-nav-bar-search-button[data-index]');
+if (searchButton) {
+  const searchModule = new URL('vpkit-zola-search.js', document.currentScript.src).href;
+  let loaded = null;
+  const openSearch = () => (loaded ??= import(searchModule)).then((m) => m.open(searchButton.dataset.index, lockScroll));
+  const isEditingContent = (e) => e.target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName);
+  searchButton.addEventListener('click', openSearch);
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      openSearch();
+    } else if (e.key === '/' && !isEditingContent(e)) {
+      e.preventDefault();
+      openSearch();
+    }
+  });
+}
+
 // ---- the doc footer --------------------------------------------------------------
 
 // VPDocFooterLastUpdated.vue: the last updated time, written on the page in

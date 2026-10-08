@@ -1,7 +1,8 @@
 // What static/vpkit-zola.js does, checked in a browser on test/parity-site:
 // each step does what a reader would. The sidebar's, the local nav's and
 // the aside's steps assert what VitePress's components do then; the
-// navbar's run on test/vitepress-build (VitePress's build of the same site)
+// navbar's and the search box's run on test/vitepress-build (VitePress's
+// build of the same site)
 // as well, and what each step leaves (attributes, the focus, the stored
 // appearance) must be the same on both. test/layout.mjs compares how the
 // opened states look.
@@ -46,6 +47,11 @@ const SIDES = {
       screenGroupButton: '.VPNavScreenMenuGroup > .button',
       screenLink: '.VPNavScreen .VPNavScreenMenuLink',
       covered: ['.VPSkipLink', '.VPLocalNav', '.VPSidebar', '.VPContent', '.VPFooter'],
+      searchButton: '.VPNavBarSearchButton',
+      searchBox: '.VPLocalSearchBox',
+      searchResult: '.VPLocalSearchBox .result',
+      searchBackdrop: '.VPLocalSearchBox .backdrop',
+      searchToggle: '.VPLocalSearchBox .toggle-layout-button',
     },
   },
   theme: {
@@ -60,6 +66,11 @@ const SIDES = {
       screenGroupButton: '.vp-nav-menu-group--screen > .vp-nav-menu-group__button',
       screenLink: '.vp-nav-screen .vp-nav-menu-link--screen',
       covered: ['.vp-skip-link', '.vp-local-nav', '.vp-sidebar', '#VPContent', '.vp-footer'],
+      searchButton: '.vp-nav-bar-search-button',
+      searchBox: '.vp-local-search-box',
+      searchResult: '.vp-local-search-box__result',
+      searchBackdrop: '.vp-local-search-box__backdrop',
+      searchToggle: '.vp-local-search-box__toggle-layout-button',
     },
   },
 };
@@ -373,6 +384,79 @@ try {
       !screen.escape.shown && screen.escape.focusOnHamburger && screen.reopened.groups[0] === 'false' &&
       !screen.link.shown && !screen.wide.shown && screen.wide.locked === 'visible',
     `nav screen: ${JSON.stringify(screen)}`,
+  );
+
+  // the local search's box: the button opens it on the input; a query's
+  // results, the first selected; the arrows move the selection (and wrap);
+  // Escape closes it; Ctrl+K opens it with the query kept; Tab stays inside
+  // it; the browser's back closes it; / opens it; the backdrop closes it;
+  // the detailed list's choice is kept; Enter goes to the selected result
+  const search = await both('search box', { viewport: { width: 1280, height: 900 } }, async (page, s) => {
+    const look = () =>
+      page.evaluate((s) => {
+        const input = document.getElementById('localsearch-input');
+        const active = document.activeElement;
+        return {
+          open: !!document.querySelector(s.searchBox),
+          focus: active === input ? 'input' : active === document.querySelector(s.searchButton) ? 'search button' : active === document.body ? 'body' : document.querySelector(s.searchBox)?.contains(active) ? 'in the box' : active?.tagName,
+          value: input?.value ?? null,
+          results: document.querySelectorAll(s.searchResult).length,
+          selected: [...document.querySelectorAll(`${s.searchBox} li[role="option"]`)].findIndex((li) => li.getAttribute('aria-selected') === 'true'),
+          hash: location.hash,
+          query: sessionStorage.getItem('vitepress:local-search-filter'),
+          detailed: localStorage.getItem('vitepress:local-search-detailed-list'),
+          locked: getComputedStyle(document.body).overflow,
+        };
+      }, s);
+    const results = (n) => page.waitForFunction(([sel, n]) => document.querySelectorAll(sel).length === n, [s.searchResult, n]);
+    const seen = {};
+    await page.click(s.searchButton);
+    await page.waitForSelector(s.searchBox);
+    seen.opened = await look();
+    await page.keyboard.type('install');
+    await results(3);
+    seen.typed = await look();
+    await page.keyboard.press('ArrowDown');
+    seen.down = await look();
+    await page.keyboard.press('ArrowUp');
+    await page.keyboard.press('ArrowUp');
+    seen.upWrapped = await look();
+    await page.keyboard.press('Escape');
+    await page.waitForSelector(s.searchBox, { state: 'detached' });
+    seen.escape = await look();
+    await page.keyboard.press('Control+k');
+    await page.waitForSelector(s.searchBox);
+    await results(3);
+    seen.ctrlK = await look();
+    for (let i = 0; i < 8; i++) await page.keyboard.press('Tab');
+    seen.tabbed = await look();
+    await page.goBack();
+    await page.waitForSelector(s.searchBox, { state: 'detached' });
+    seen.back = await look();
+    await page.mouse.click(5, 5);
+    await page.keyboard.press('/');
+    await page.waitForSelector(s.searchBox);
+    await results(3);
+    seen.slash = await look();
+    await page.mouse.click(640, 890);
+    await page.waitForSelector(s.searchBox, { state: 'detached' });
+    seen.backdrop = await look();
+    await page.click(s.searchButton);
+    await results(3);
+    await page.click(s.searchToggle);
+    await page.waitForFunction((box) => document.querySelectorAll(`${box} li[role="option"] a > div > div:nth-child(2)`).length === 3, s.searchBox);
+    seen.detailed = await look();
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => location.hash === '#installation');
+    await page.waitForSelector(s.searchBox, { state: 'detached' });
+    seen.enter = await look();
+    return seen;
+  });
+  check(
+    search.opened.focus === 'input' && search.typed.results === 3 && search.down.selected === 1 && search.upWrapped.selected === 2 &&
+      !search.escape.open && search.ctrlK.value === 'install' && !search.back.open && search.slash.open && !search.backdrop.open &&
+      search.detailed.detailed === 'true' && search.enter.hash === '#installation',
+    `search box: ${JSON.stringify(search)}`,
   );
 
   // appearance = false: no switch and no dark mode, whatever the OS

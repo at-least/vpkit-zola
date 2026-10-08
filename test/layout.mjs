@@ -37,7 +37,9 @@ const DARK_AT = 1280;
 // snapshot: a hydrated page of vitepress.dev, click: what opens the state it
 // shows on the theme's page; or vitepress: test/vitepress-build's page, and
 // steps: [action, VitePress's selector, the theme's] done on both, action
-// hover, click, click all (each match) or scroll (to y = the selector), and
+// hover, click, click all (each match), type (the text), wait (until the
+// expression holds: what a script does later, as the search 200ms after
+// the last key) or scroll (to y = the selector), and
 // expect: [VitePress's, the theme's] expressions that must be true after
 // them (the state the steps are for was reached). path: the theme's page;
 // pairs: [VitePress's subtree, the theme's]; drop: vitepress.dev's elements
@@ -230,6 +232,67 @@ const checks = [
       ['.VPFooter', '.vp-footer'],
     ],
   },
+  // the local search's box over the page: a query's results (the same
+  // index, so the same sections in the same order), as the detailed list
+  // with each section's text, and a query that finds nothing
+  {
+    name: 'search box',
+    ...NAV_PAGE,
+    widths: [375, 768, 1280],
+    steps: [
+      ['click', '.VPNavBarSearchButton', '.vp-nav-bar-search-button'],
+      ['type', 'install', 'install'],
+      [
+        'wait',
+        "document.querySelectorAll('.VPLocalSearchBox .result').length === 3",
+        "document.querySelectorAll('.vp-local-search-box__result').length === 3",
+      ],
+    ],
+    expect: [
+      "document.querySelectorAll('.VPLocalSearchBox .result').length === 3",
+      "document.querySelectorAll('.vp-local-search-box__result').length === 3",
+    ],
+    pairs: [['.VPLocalSearchBox', '.vp-local-search-box']],
+  },
+  {
+    name: 'search box, detailed list',
+    ...NAV_PAGE,
+    widths: [375, 1280],
+    steps: [
+      ['click', '.VPNavBarSearchButton', '.vp-nav-bar-search-button'],
+      ['type', 'install', 'install'],
+      [
+        'wait',
+        "document.querySelectorAll('.VPLocalSearchBox .result').length === 3",
+        "document.querySelectorAll('.vp-local-search-box__result').length === 3",
+      ],
+      ['click', '.VPLocalSearchBox .toggle-layout-button', '.vp-local-search-box__toggle-layout-button'],
+      // a wrapper for each; an excerpt where the section has text of its
+      // own (Installation has none before Prerequisites)
+      [
+        'wait',
+        "document.querySelectorAll('.VPLocalSearchBox .excerpt-wrapper').length === 3",
+        "document.querySelectorAll('.vp-local-search-box__excerpt-wrapper').length === 3",
+      ],
+    ],
+    expect: [
+      "document.querySelectorAll('.VPLocalSearchBox .excerpt').length === 2",
+      "document.querySelectorAll('.vp-local-search-box__excerpt').length === 2",
+    ],
+    pairs: [['.VPLocalSearchBox', '.vp-local-search-box']],
+  },
+  {
+    name: 'search box, no results',
+    ...NAV_PAGE,
+    widths: [375, 1280],
+    steps: [
+      ['click', '.VPNavBarSearchButton', '.vp-nav-bar-search-button'],
+      ['type', 'xyzzy', 'xyzzy'],
+      ['wait', "!!document.querySelector('.VPLocalSearchBox .no-results')", "!!document.querySelector('.vp-local-search-box__no-results')"],
+    ],
+    expect: [shown('.VPLocalSearchBox .no-results'), shown('.vp-local-search-box__no-results')],
+    pairs: [['.VPLocalSearchBox', '.vp-local-search-box']],
+  },
   {
     name: 'nav screen, groups open',
     ...NAV_PAGE,
@@ -337,7 +400,9 @@ async function step(page, action, selector, away) {
     if (!n) throw new Error(`no ${selector}`);
     for (let i = 0; i < n; i++) await page.locator(selector).nth(i).click();
     await away();
-  } else if (action === 'scroll') await page.evaluate((y) => window.scrollTo(0, Number(y)), selector);
+  } else if (action === 'type') await page.keyboard.type(selector);
+  else if (action === 'wait') await page.waitForFunction(selector);
+  else if (action === 'scroll') await page.evaluate((y) => window.scrollTo(0, Number(y)), selector);
   else throw new Error(`no step ${action}`);
   await settle(page);
 }

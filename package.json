@@ -4,6 +4,7 @@
   "description": "Builds and checks the vpkit Zola theme; a docs site using the theme needs only zola",
   "license": "MIT",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node scripts/build.mjs --check && node test/render.mjs && node test/search.mjs && node test/layout.mjs && node test/behavior.mjs"
