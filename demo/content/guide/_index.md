@@ -1,4 +1,4 @@
 +++
-title = "guide"
+title = "Guide"
 render = false
 +++

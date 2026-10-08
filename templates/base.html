@@ -68,7 +68,7 @@
     {%- set root = get_section(path="_index.md", lang=lang) -%}
     {%- set found -%}{% for page in root.pages %}{% if page.relative_path == stub %}1{% endif %}{% endfor %}{%- endset -%}
     {%- if not found -%}
-    {{ throw(message="vpkit-zola: search = true needs content/" ~ stub ~ " with template = \"vp-search-index.html\" in its front matter (README)") }}
+    {{ throw(message="vpkit-zola: search = true needs content/" ~ stub ~ " with template = \"vp-search-index.html\" in its front matter: https://github.com/at-least/vpkit-zola/blob/main/demo/content/reference/search.md") }}
     {%- endif %}
     {{ <vp_local_search_box site={site} index={get_url(path="@/vp-search.md", lang=lang)} /> }}
     {%- endif %}

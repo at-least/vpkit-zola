@@ -2,7 +2,7 @@
 
 A [Zola](https://www.getzola.org) theme with VitePress's look, built on [vpkit](https://github.com/at-least/vpkit). A docs site needs only `zola` (0.23.6 or later): the theme ships its stylesheet, fonts and script prebuilt, so there is no Node.js and no build step.
 
-Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens), the aside with the outline, the doc footer, the site footer, the home page, the 404 page, the local search, sites in several languages, sidebars by path, and VitePress's custom containers, badges and code groups in markdown, as VitePress renders them. `demo/` is rustpress's documentation rendered by the theme (`cd demo && zola serve`).
+Work in progress. Done: the page skeleton, the markdown, the navbar (with the extra menu, the appearance switch, social links and the phone's nav screen), the sidebar, the local nav (narrow screens), the aside with the outline, the doc footer, the site footer, the home page, the 404 page, the local search, sites in several languages, sidebars by path, and VitePress's custom containers, badges and code groups in markdown, as VitePress renders them.
 
 ## Use
 
@@ -30,171 +30,10 @@ dark_theme = "github-dark"
 
 `github_alerts`, `bottom_footnotes`, `insert_anchor_links` and `style` are required, and `data_attr_position` must stay at its default, `"code"`: the templates stop the build and say which setting is wrong.
 
-The sidebar and the outline are set as in VitePress's `themeConfig`, under `[extra]`:
+A docs site usually goes on with a navbar and a sidebar under `[extra]`, with the names VitePress's `themeConfig` uses, in snake case. The theme's documentation has the rest: `demo/` is a site built with the theme (`cd demo && zola serve`), its pages in `demo/content/`.
 
-```toml
-[extra]
-outline = 2            # the headings in the outline: 2, [2, 3], "deep" (2 to 6) or false
-
-[[extra.sidebar]]
-text = "Guide"
-collapsed = false      # set it (true or false) to make the section collapsible
-items = [
-  { text = "Introduction", link = "@/guide/introduction.md" },
-  { text = "Nested", items = [{ text = "Details", link = "@/guide/details.md" }] },
-  { text = "Zola", link = "https://www.getzola.org" },
-]
-```
-
-For a sidebar per part of the site, VitePress's multi-sidebar, key the lists by path: `[[extra.sidebar."/guide/"]]`, `[[extra.sidebar."/reference/"]]`; a page takes the list whose path its own starts with, the longest first, and has none outside them. A link is a Zola path (`@/…`, checked at build time), a path on the site or a URL. The page's item is active, and the sections around it open. A page can set `sidebar = false`, `aside = false` or its own `outline` in its front matter's `[extra]`. The labels are settings too: `outline_label` ("On this page"), `sidebar_menu_label` ("Menu"), `return_to_top_label` ("Return to top").
-
-The navbar, also as in `themeConfig`:
-
-```toml
-[extra]
-logo = { src = "/logo.svg", width = 24, height = 24 }   # or "/logo.svg", or { light = "…", dark = "…" }
-site_title = "My Docs"   # default: config.title; false: logo only
-appearance = true        # the light/dark switch; false: always light
-nav = [
-  { text = "Guide", link = "@/guide/introduction.md", active_match = "^/guide/" },
-  { text = "More", items = [
-    { text = "Changelog", link = "https://example.com/changelog" },
-    { text = "Elsewhere", items = [{ text = "Blog", link = "https://example.com/blog" }] },
-  ] },
-]
-social_links = [{ icon = "github", link = "https://github.com/you/project" }]
-```
-
-Under each doc, and at the foot of pages without a sidebar:
-
-```toml
-[extra]
-edit_link = { pattern = "https://github.com/you/project/edit/main/content/:path", text = "Edit this page on GitHub" }
-last_updated = true      # a doc's `updated` date (front matter), in the reader's language
-footer = { message = "Released under the MIT License.", copyright = "Copyright © 2026 You" }
-```
-
-`:path` is the doc's file under `content/`. The links to the previous and next pages follow the sidebar's order, as in VitePress; their labels are `doc_footer_prev` ("Previous page") and `doc_footer_next` ("Next page"), `false` for none, and `last_updated_text` ("Last updated") labels the date. A doc's own `[extra]` can set `edit_link`, `last_updated` or `footer` to `false`, and `prev` and `next` to `false`, a text, or `{ text, link }`.
-
-A home page is VitePress's `layout: home`, set in a page's or section's front matter (usually `content/_index.md`):
-
-```toml
-+++
-title = "My Project"
-
-[extra]
-layout = "home"
-
-[extra.hero]
-name = "My Project"
-text = "What it is, in a line"
-tagline = "Why it matters"
-image = { src = "/logo.svg", alt = "My Project" }
-actions = [
-  { theme = "brand", text = "Get Started", link = "@/guide/introduction.md" },
-  { theme = "alt", text = "GitHub", link = "https://github.com/you/project" },
-]
-
-[[extra.features]]
-icon = "⚡"                  # HTML, or an image: { src, width?, height?, wrap? }
-title = "Fast"
-details = "One line, or a list: [\"…\", \"…\"]"
-link = "@/guide/speed.md"    # optional, with link_text
-link_text = "Learn more"
-+++
-
-Markdown here goes below the features.
-```
-
-The features sit two, three or four to a row by their number, as in VitePress. A home page has no sidebar or local nav, and the navbar is transparent until the page scrolls.
-
-The local search is VitePress's (its button and box, its index and ranking), without Node: turn it on under `[extra]` and add the page the theme writes the index into, `content/vp-search.md` (and `content/vp-search.<code>.md` for each other language, the same):
-
-```toml
-[extra]
-search = true
-search_button_text = "Search"   # the default
-```
-
-```toml
-+++
-title = "Search index"
-template = "vp-search-index.html"
-in_search_index = false
-
-[extra]
-search = false
-+++
-```
-
-The index page holds every page's text; the box loads it on its first open, splits it into sections at the headings and ranks them with MiniSearch, all as VitePress does (`/` or Ctrl+K opens it). A page with `search = false` in its `[extra]` stays out. Zola's own `build_search_index` is not needed.
-
-The 404 page is VitePress's, its texts set by `not_found = { code, title, quote, link, link_label, link_text }` under `[extra]` (each optional).
-
-A nav item is a link or a group, a flyout in the bar and a list that opens in place on a phone; a group holds links and titled groups of links. `active_match` is a regular expression tested on the page's path (Zola's `current_path`, such as `/guide/introduction/`); without one, a link is active on its own page. Social link icons are Simple Icons': `bluesky`, `codeberg`, `discord`, `facebook`, `github`, `gitlab`, `instagram`, `linkedin`, `mastodon`, `npm`, `slack`, `twitter`, `x`, `youtube` (`aria_label` overrides the name read out). What does not fit the bar moves into the extra menu (…) as in VitePress: the social links first, then the switch, then menu items from the right. The labels: `nav_menu_label` ("Main Navigation"), `extra_menu_label` ("More options"), `mobile_menu_label` ("Menu"), `dark_mode_switch_label` ("Appearance"), `dark_mode_switch_title` ("Switch to dark theme"), `light_mode_switch_title` ("Switch to light theme").
-
-VitePress's markdown extensions that Zola's markdown lacks are components, called from a page's markdown: custom containers (`::: tip`), badges (`<Badge>`) and code groups (`::: code-group`), rendered as VitePress renders them.
-
-~~~md
-{% <vp_container type="tip"> %}
-Markdown, as in `::: tip`.
-{% </vp_container> %}
-
-{% <vp_container type="details" title="Click me" open={true}> %}
-More markdown.
-{% </vp_container> %}
-
-## Options {{ <vp_badge type="warning" text="beta" /> }} {#options}
-
-{% <vp_code_group> %}
-
-```js,name=config.js
-export default {}
-```
-
-```ts,name=config.ts
-export default {} satisfies Config
-```
-
-{% </vp_code_group> %}
-~~~
-
-A container's `type` is `info`, `tip`, `warning`, `danger`, `details`, `note`, `important` or `caution`; `title` replaces the type's label, `open={true}` opens a details block and `no_title={true}` leaves the title out. A badge's `type` is `info`, `note`, `tip` (the default), `important`, `caution`, `warning` or `danger`, its text `text` or what it encloses (`{% <vp_badge type="info"> %}…{% </vp_badge> %}`). In a heading, Zola puts a badge's text into the heading's id where VitePress leaves it out: give the heading its id (`{#options}`); the outline leaves the badge out, as VitePress's does. A code group's tabs are its blocks' names, Zola's `name=` (VitePress's `[title]`). Zola renders the markdown of a page that calls a component as a Tera template first, so in such a page write a literal `{{`, `{%` or `{#` (in code too) inside `{% raw %}…{% endraw %}`; a heading's `{#id}` is fine as it is.
-
-A site in more than one language ([Zola's `[languages]`](https://www.getzola.org/documentation/content/multilingual/)) gets VitePress's language menu: a flyout in the navbar (in the extra menu when the bar is full, opening in place on a phone's nav screen) linking the page to the same path in each other language, the page's hash and query kept. Each language is an entry in `locales` under `[extra]`, which can give any setting in this README for that language: it replaces the site's, a whole setting at a time (a locale's `nav` or `search_box` replaces the site's), as a VitePress locale's `themeConfig` does.
-
-```toml
-[languages.zh]
-title = "我的文档"            # Zola: each language has its own title
-
-[extra]
-lang_menu_label = "Change language"   # the default
-
-[[extra.locales]]
-code = "en"                   # the language's code in Zola
-label = "English"
-lang = "en-US"                # optional: the pages' and the links' lang (default: the code)
-
-[[extra.locales]]
-code = "zh"
-label = "简体中文"
-lang = "zh-Hans"
-dir = "ltr"                   # optional
-lang_menu_label = "多语言"
-nav = [{ text = "指南", link = "@/guide/introduction.zh.md" }]
-outline_label = "页面导航"
-```
-
-A page in another language is the file with its code, `content/guide/introduction.zh.md`; Zola places it under `/zh/` only with its section in that language too (`content/guide/_index.zh.md`, `render = false` if it has no page of its own). The navbar's title links to the language's home. Zola's heading anchors follow `[slugify] anchors`, which by default transliterates CJK headings where VitePress keeps the characters.
-
-The texts VitePress lets a locale translate are settings here too: the labels above, `skip_to_content_label` ("Skip to content"), the search box's (VitePress's local search translations) and the markdown's (its container labels and copy button). Each key is optional; these are the defaults:
-
-```toml
-[extra]
-search_box = { display_details = "Display detailed list", reset_button_title = "Reset search", back_button_title = "Close search", no_results_text = "No results for", select_text = "to select", select_key_aria_label = "enter", navigate_text = "to navigate", navigate_up_key_aria_label = "up arrow", navigate_down_key_aria_label = "down arrow", close_text = "to close", close_key_aria_label = "escape" }
-container_labels = { tip = "TIP", info = "INFO", warning = "WARNING", danger = "DANGER", details = "Details", note = "NOTE", important = "IMPORTANT", caution = "CAUTION" }
-code_copy_button = { tooltip_text = "Copy code", copied_text = "Copied" }
-```
+- Guide: [What is vpkit-zola?](demo/content/guide/what-is-vpkit-zola.md), [Getting Started](demo/content/guide/getting-started.md), [Markdown](demo/content/guide/markdown.md) (Zola's markdown with VitePress's styles; containers, badges and code groups as components), [Internationalization](demo/content/guide/i18n.md), [Coming from VitePress](demo/content/guide/coming-from-vitepress.md).
+- Reference: [Settings](demo/content/reference/settings.md) (every setting and its default), [Front Matter](demo/content/reference/front-matter.md), [Navbar](demo/content/reference/navbar.md), [Sidebar](demo/content/reference/sidebar.md), [Home Page](demo/content/reference/home-page.md), [Doc Footer](demo/content/reference/doc-footer.md), [Search](demo/content/reference/search.md).
 
 ## How it works
 
@@ -212,7 +51,7 @@ The social link icons are built into the stylesheet as VitePress generates its `
 
 Code colors are Giallo's, from the themes the site picks. Giallo writes each token's two colors inline as `light-dark()`; the theme ties them to the page's appearance (VitePress's `html.dark`, set by the stored choice or the OS) instead of the OS alone. The code block background stays vpkit's.
 
-Known differences from VitePress: the language label shows Giallo's name for the language (`javascript` where VitePress shows the fence's `js`; the search index reads it too); Zola's markdown has no inline footnotes or line notations (`// [!code focus]`), and containers, badges and code groups are the components above; a link within the page (the outline's, a heading's anchor) is the browser's, which leaves the focus on the link where VitePress's router moves it to the heading (as the theme does for a search result); and the search index reads code with its markup characters escaped as Giallo writes them (`&lt;`) where VitePress reads Shiki's (`&#x3C;`), so the stray terms those leave in an index differ.
+Known differences from VitePress: the language label shows Giallo's name for the language (`javascript` where VitePress shows the fence's `js`; the search index reads it too); Zola's markdown has no inline footnotes or line notations (`// [!code focus]`), and containers, badges and code groups are components ([Markdown](demo/content/guide/markdown.md)); a link within the page (the outline's, a heading's anchor) is the browser's, which leaves the focus on the link where VitePress's router moves it to the heading (as the theme does for a search result); and the search index reads code with its markup characters escaped as Giallo writes them (`&lt;`) where VitePress reads Shiki's (`&#x3C;`), so the stray terms those leave in an index differ.
 
 ## Develop
 
@@ -224,7 +63,7 @@ npm install
 npm run build   # static/vpkit-zola.css and static/fonts/, from css/ and vpkit
 npm test        # static/ is up to date, then the browser checks
 zola serve      # this repository's own site: the markdown parity page
-cd demo && zola serve   # the demo (demo/README.md)
+cd demo && zola serve   # the documentation, built with the theme
 ```
 
 `npm test` builds sites with zola and renders them in headless Chromium:
@@ -234,7 +73,7 @@ cd demo && zola serve   # the demo (demo/README.md)
 - `test/search.mjs`: the local search's index for each language of `test/parity-site` against the one VitePress built for the same locale, section by section and term by term.
 - `test/behavior.mjs`, on `test/parity-site`: what the script does, step by step: the sidebar opening and closing (Escape gives the focus back, the backdrop closes it), a section collapsing, the outline dropdown closing on Escape or a click outside, the aside's active heading as the page scrolls; and, next to `test/vitepress-build` with the same steps and required to end the same, the appearance switch (what it stores, following the OS and other tabs), a flyout by mouse, keyboard and touch, the nav screen, the language menu (its links keeping the page's hash) and its accordion on a phone, the search box (shortcuts, keys, the query kept, back, Enter), a code group's tabs, a Chinese page's alert and container titles and copy button.
 
-- `test/demo.mjs`: `demo/` builds, its pages without VitePress syntax left unconverted.
+- `test/demo.mjs`: the documentation in `demo/` builds, its pages without VitePress syntax showing as text.
 
 `test/vitepress-site` is `test/parity-site` written for VitePress; `test/vitepress-build` is its build by VitePress v2.0.0-alpha.20, the version vpkit ports, committed so the tests need no VitePress. After changing the site, rebuild it from a clone of VitePress at that tag with its dependencies installed and built (the tests refuse a stale build):
 
@@ -248,4 +87,4 @@ The CSS is compiled unminified: Tailwind's minifier rounds `line-height: 1.33333
 
 ## License
 
-MIT (`LICENSE`). The prebuilt stylesheet holds vpkit's CSS, which ports VitePress's (MIT, `LICENSE-VitePress`; `content/parity/markdown.md` is VitePress's guide text, `test/vitepress-build` VitePress's build and the logo in the test sites VitePress's), Lucide's icons (ISC, `LICENSE-Lucide`) and Simple Icons' (CC0-1.0). `static/vendor/minisearch.js` is MiniSearch (MIT, `LICENSE-MiniSearch`). `demo/content` is rustpress's documentation (MIT), which follows VitePress's. The fonts in `static/fonts/` are Inter, under the SIL Open Font License 1.1 (`LICENSE-Inter`).
+MIT (`LICENSE`). The prebuilt stylesheet holds vpkit's CSS, which ports VitePress's (MIT, `LICENSE-VitePress`; `content/parity/markdown.md` is VitePress's guide text, `test/vitepress-build` VitePress's build and the logo in the test sites VitePress's), Lucide's icons (ISC, `LICENSE-Lucide`) and Simple Icons' (CC0-1.0). `static/vendor/minisearch.js` is MiniSearch (MIT, `LICENSE-MiniSearch`). The documentation's markdown examples follow VitePress's guide (MIT). The fonts in `static/fonts/` are Inter, under the SIL Open Font License 1.1 (`LICENSE-Inter`).

@@ -1,152 +1,66 @@
 +++
 title = "Coming from VitePress"
-description = "Migrate an existing VitePress site to rustpress — what carries over unchanged, how the config maps to rustpress.toml, and which VitePress features have no counterpart."
-updated = 2026-09-12T14:40:41+08:00
-
-[extra]
-outline = "deep"
+description = "What a VitePress site changes to build with Zola and vpkit-zola."
+updated = 2026-10-09T00:00:00Z
 +++
 
 # Coming from VitePress
 
-rustpress reads VitePress's content format, so a migration is mostly a matter of moving the config. This page lists what carries over, how `config.ts` maps to `rustpress.toml`, and — just as important — what rustpress deliberately does not do.
+A VitePress site's pages move to Zola's `content/` with small changes, and its configuration moves from `.vitepress/config.ts` to `config.toml`. The look stays.
 
-## Content carries over
+## Configuration
 
-Copy your markdown tree into `content/`. The following work exactly as in VitePress:
+`themeConfig`'s keys are `[extra]`'s, in snake case:
 
-- YAML front matter and every [front-matter key](@/reference/frontmatter-config.md) of the default theme (`layout`, `hero`, `features`, `outline`, `sidebar`, `aside`, `prev`/`next`, …).
-- All [markdown extensions](@/guide/markdown.md): custom containers, GitHub alerts, code groups, line highlighting, focus/diff/error markers, line numbers, `<<<` snippets with regions, `<!--@include-->`, `[[toc]]`, footnotes, emoji, custom heading anchors, math, `<Badge>`.
-- Relative links between pages, with or without the `.md` suffix.
-- `public/` becomes `static/`: files are copied verbatim to the output root.
-
-Two things to check:
-
-- **URLs are always directory-style.** `guide/x.md` is served at `/guide/x/`, never at `/guide/x.html`. Links written with `.html` are rewritten, but external sites linking to your `.html` URLs will need redirects.
-{% raw %}- **Vue in markdown stays literal.** `{{ expressions }}`, `<script setup>`, imported components and `<ClientOnly>` are not interpreted; they render as text or as unknown HTML tags. Remove them, or replace them with static content.{% endraw %}
-
-## Config mapping
-
-`.vitepress/config.ts` becomes `rustpress.toml`. Keys keep VitePress's camelCase spelling; everything under `themeConfig` moves to the top level. A typical config:
-
-{% <vp_code_group> %}
-
-```ts,name=.vitepress/config.ts
-export default defineConfig({
-  title: 'My Docs',
-  description: 'Just playing around.',
-  lastUpdated: true,
-  themeConfig: {
-    logo: '/logo.svg',
-    nav: [{ text: 'Guide', link: '/guide/', activeMatch: '/guide/' }],
-    sidebar: {
-      '/guide/': {
-        base: '/guide/',
-        items: [
-          { text: 'Introduction', items: [
-            { text: 'Getting Started', link: 'getting-started' }
-          ]}
-        ]
-      }
-    },
-    socialLinks: [{ icon: 'github', link: 'https://github.com/me/docs' }],
-    editLink: { pattern: 'https://github.com/me/docs/edit/main/docs/:path' },
-    footer: { message: 'MIT Licensed' },
-    search: { provider: 'local' }
-  }
-})
-```
-
-```toml,name=rustpress.toml
-title = "My Docs"
-description = "Just playing around."
-lastUpdated = true
-logo = "/logo.svg"
-
-[[nav]]
-text = "Guide"
-link = "/guide/"
-activeMatch = "/guide/"
-
-[sidebar."/guide/"]
-base = "/guide/"
-
-  [[sidebar."/guide/".items]]
-  text = "Introduction"
-
-    [[sidebar."/guide/".items.items]]
-    text = "Getting Started"
-    link = "getting-started"
-
-[[socialLinks]]
-icon = "github"
-link = "https://github.com/me/docs"
-
-[editLink]
-pattern = "https://github.com/me/docs/edit/main/docs/:path"
-
-[footer]
-message = "MIT Licensed"
-
-[search]
-provider = "local"
-```
-
-{% </vp_code_group> %}
-
-Key-by-key differences:
-
-| VitePress | rustpress |
+| VitePress (`themeConfig`) | vpkit-zola (`[extra]`) |
 | --- | --- |
-| `srcDir` defaults to the project root | defaults to `content` |
-| `outDir` | always `<site>/public`, not configurable |
-| `cleanUrls` | no option; URLs are always directory-style |
-| `rewrites` with `path-to-regexp` params or a function | static map plus a trailing `:rest*` only |
-| `markdown.theme` (Shiki) | [`[code]`](../reference/site-config#code) — TOML themes, vendored from Helix |
-| `.vitepress/theme/custom.css` | [`theme`](#theming) — a path to a CSS file |
-| `themeConfig.lastUpdated.text` | flat `lastUpdatedText` |
-| `themeConfig.search.options.translations` | `[search.translations]` |
-| `markdown.image.lazyLoad` | `[markdown.image] lazyLoading` (the upstream spelling is accepted too) |
-| `appearance: 'force-dark'` | `"force-dark"` or `"force"` |
-| `locales.<x>.themeConfig` / `.head` / `.markdown` | not available; only `label`, `lang`, `title`, `description` per locale |
+| `logo`, `siteTitle` | `logo`, `site_title` |
+| `nav` (`activeMatch`) | `nav` (`active_match`) |
+| `sidebar`, an array or an object by path | `sidebar`, a list or a table by path |
+| `socialLinks` | `social_links` |
+| `editLink` | `edit_link` |
+| `lastUpdated` | `last_updated`, with each page's `updated` date |
+| `docFooter` | `doc_footer_prev`, `doc_footer_next` |
+| `outline` | `outline`, `outline_label` |
+| `footer` | `footer` |
+| `notFound` | `not_found` |
+| `search: { provider: 'local' }` | `search = true` and an index page |
+| `locales` (site config) | Zola's `[languages]` and `locales` |
 
-Unknown keys fail the build, so the first `rustpress build` after a migration is an inventory of what did not map. The complete list of options is in [Site Config](@/reference/site-config.md) and [Default Theme Config](@/reference/default-theme-config.md).
+A sidebar's `base` has no equivalent: write each link whole. The [settings reference](@/reference/settings.md) has every key.
 
-## Theming
+## Pages
 
-rustpress ships one design, and the supported customization is **colors only** — two settings in `rustpress.toml`:
+A page's YAML front matter keeps working: Zola reads YAML between `---` lines as well as TOML between `+++` lines. Zola's own keys (`title`, `description`) stay at the top; the theme's (`layout`, `hero`, `features`, `outline`, `sidebar`, `aside`, `prev`, `next`, `editLink`, `lastUpdated`, `footer`) go under `extra`, in snake case. See [Front Matter](@/reference/front-matter.md).
 
-```toml
-theme = "catppuccin"   # UI colors — every bundled theme in the Theme gallery
+A page whose title VitePress takes from its first heading needs a `title` for Zola.
 
-[code]
-light = "github_light" # code colors — one per mode, all in the Syntax Highlight gallery
-dark = "catppuccin_mocha"
-```
+## Links
 
-That is the whole surface. Overriding `--vp-*` variables in a CSS file of your own is possible but undocumented and not recommended; if you want to restyle components, swap fonts, or extend the theme itself, [VitePress](https://vitepress.dev) is the tool built for it.
+VitePress's links are paths: `./getting-started`, `/guide/routing#anchor`. Zola's work too, as paths on the site, but a link to the page's file, `@/guide/getting-started.md#anchor`, is checked when the site builds.
 
-## What has no counterpart
+## Markdown
 
-rustpress has no JavaScript at build time and no Vue at run time. These VitePress features are therefore absent by design, not on a roadmap:
+| VitePress | vpkit-zola |
+| --- | --- |
+| `::: tip Title` … `:::` | `vp_container`, with `type` and `title` ([Markdown](@/guide/markdown.md#custom-containers)) |
+| `::: details Title {open}` | `vp_container` with `type="details"` and `open={true}` |
+| `::: code-group` | `vp_code_group` ([Markdown](@/guide/markdown.md#code-groups)) |
+| `<Badge type="tip" text="new" />` | `vp_badge` ([Markdown](@/guide/markdown.md#badge)) |
+| ```` ```js{1,4-6} ```` | ```` ```js,hl_lines=1 4-6 ```` |
+| ```` ```ts:line-numbers=5 ```` | ```` ```ts,linenos,linenostart=5 ```` |
+| ```` ```js [config.js] ```` in a code group | ```` ```js,name=config.js ```` |
+| `// [!code highlight]` | `hl_lines` |
+| `<<< @/snippets/file.js` | the code, in a fenced block |
+| `<!--@include: ./part.md-->` | the part's text, in the page |
+| `[[toc]]` | none: the outline shows it |
 
-{% raw %}- **Vue in markdown** — `<script setup>`, `{{ }}` interpolation, components, `<ClientOnly>`, `v-pre`.{% endraw %}
-- **Custom themes and theme extension** — `.vitepress/theme/index.ts`, `enhanceApp`, layout slots, overriding internal components. Customization stops at colors ([Theming](#theming)); past that, VitePress is the tool.
-- **Build-time data loading** — `*.data.js` loaders, `createContentLoader`.
-- **Dynamic routes** — `[param].md` with a `.paths.js` loader.
-- **Build hooks and Vite/Vue config** — `transformHead`, `transformHtml`, `transformPageData`, `buildEnd`, `vite`, `vue`, `markdown.config()`.
-- **Runtime API** — `useData`, `useRoute`, `useRouter`, `withBase`, `$frontmatter`, `$params`.
-- **External services** — Algolia DocSearch, Carbon Ads.
-- **Team page components** (`VPTeamMembers` and friends).
-- **MPA mode and SSR compatibility concerns** — rustpress output is already plain static HTML with a small Alpine.js bundle; there is no hydration to opt out of.
+Containers, alerts, badges and code groups look as they do in VitePress; the [Markdown](@/guide/markdown.md) guide shows them.
 
-## Things rustpress adds
+## What Does Not Carry Over
 
-A few options exist only on this side:
-
-- `[code]` with all 218 themes vendored from the Helix editor.
-- `[markdown] codeCopyButton = false` to drop the copy button.
-- `[notFound]` title/quote/link text for the 404 page.
-- `askAiUrl` for a navbar link.
-- Custom `:::` containers that reuse a built-in kind's styling: `[[markdown.container.custom]]`.
-- A dead-link check that fails the build by default.
+- Vue in markdown: components, `<script setup>`, `{{ "{{ }}" }}` interpolation, `<ClientOnly>`.
+- Line notations other than highlighting: focus, diff (`++`, `--`), error and warning.
+- Math (`$…$`): Zola renders none, and shows it as written.
+- A custom theme in Vue: vpkit-zola's templates are Zola's (Tera) templates.
+- The single-page app: pages load as pages. A link to a heading on the same page leaves the focus on the link, where VitePress's router moves it to the heading.

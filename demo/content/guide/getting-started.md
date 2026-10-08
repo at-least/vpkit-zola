@@ -1,7 +1,7 @@
 +++
 title = "Getting Started"
-description = "Get up and running with rustpress. Build the binary, create a site directory with rustpress.toml and content/, and serve it with live reload."
-updated = 2026-10-08T22:23:51+08:00
+description = "Install the theme, set Zola's markdown options it needs, and write the first pages."
+updated = 2026-10-09T00:00:00Z
 +++
 
 # Getting Started
@@ -10,106 +10,120 @@ updated = 2026-10-08T22:23:51+08:00
 
 ### Prerequisites
 
-- [Rust](https://www.rust-lang.org/tools/install) 1.85 or newer (`cargo` is the only build tool the generator needs).
-- [Node.js](https://nodejs.org/) 18 or newer, **once**, to produce the theme's CSS and JavaScript bundle. They are not checked in and not embedded in the binary yet, so a fresh checkout has to build them.
-- A terminal and a text editor with [Markdown](https://en.wikipedia.org/wiki/Markdown) support.
+- [Zola](https://www.getzola.org/documentation/getting-started/installation/) 0.23.6 or later.
+- A Zola site: `zola init my-docs` makes one.
 
-### Build from source
+### Add the theme
 
-rustpress is not on crates.io yet. When it is, the crate will be named `rustpress-cli` (the `rustpress` crate name belongs to another project) and the installed binary will still be `rustpress`. For now, clone the repository and build it. The theme's CSS comes from vpkit, a separate repository that npm links from `../vpkit`, so clone it next to rustpress. The theme's stylesheet and script are produced by npm and then embedded into the binary, so the npm step has to run before `cargo build`:
+The theme goes into the site's `themes/` directory, as a git submodule:
 
 ```sh
-$ git clone https://github.com/at-least/rustpress
-$ git clone https://github.com/at-least/vpkit  # the theme's CSS, as ../vpkit
-$ cd rustpress
-$ npm install                      # tailwindcss CLI + esbuild + alpinejs + vpkit
-$ npm run build:js && npm run build:css   # → static/js/app.js, static/vitepress.css
-$ cargo build --release            # → target/release/rustpress
+git submodule add https://github.com/at-least/vpkit-zola themes/vpkit-zola
 ```
 
-`cargo install --path .` puts the binary on your `PATH`. The binary is self-contained: the theme's `vitepress.css`, `js/app.js`, the Inter font files, the bundled color themes and the code-color themes are compiled into it (see [Theme assets](#theme-assets)), so the checkout is not needed afterwards.
+`git submodule update --remote themes/vpkit-zola` brings it up to date later. A plain `git clone` into `themes/vpkit-zola` works as well.
+
+## Configuration
+
+In `config.toml`, name the theme and set the markdown options it renders VitePress's markup from:
+
+```toml
+theme = "vpkit-zola"
+
+[markdown]
+github_alerts = true
+bottom_footnotes = true
+insert_anchor_links = "right"
+external_links_target_blank = true   # as VitePress does
+external_links_no_referrer = true    # as VitePress does
+
+[markdown.highlighting]
+style = "inline"
+light_theme = "github-light"   # any Giallo theme, or one `theme` for both
+dark_theme = "github-dark"
+```
+
+`github_alerts`, `bottom_footnotes`, `insert_anchor_links` and `style` are required, and `data_attr_position` must stay at its default, `"code"`. A site that sets them otherwise does not build: the theme stops the build and names the setting.
+
+The theme's own settings go under `[extra]`, with the names VitePress's `themeConfig` uses, in snake case. The [settings reference](@/reference/settings.md) lists them all; a docs site usually starts with a navbar and a sidebar:
+
+```toml
+[extra]
+nav = [
+  { text = "Guide", link = "@/guide/introduction.md", active_match = "^/guide/" },
+]
+social_links = [{ icon = "github", link = "https://github.com/you/project" }]
+
+[[extra.sidebar]]
+text = "Guide"
+items = [
+  { text = "Introduction", link = "@/guide/introduction.md" },
+  { text = "Installation", link = "@/guide/installation.md" },
+]
+```
+
+A link written `@/…` is a page's file under `content/`: Zola checks it at build time.
 
 ## File Structure
 
-A site is a directory containing a `rustpress.toml` and a `content/` tree of markdown files:
+A site's pages are Zola's: markdown files under `content/`, a section (`_index.md`) for each directory. A directory whose section has no page of its own sets `render = false`:
 
 ```
 .
-├─ my-docs
-│  ├─ rustpress.toml
-│  ├─ static/            # copied verbatim to the output root (optional)
-│  └─ content
-│     ├─ index.md
-│     ├─ guide
-│     │  └─ getting-started.md
-│     └─ reference
-│        └─ config.md
-└─ ...
+├─ config.toml
+├─ content
+│  ├─ _index.md          # the home page
+│  └─ guide
+│     ├─ _index.md       # render = false
+│     ├─ introduction.md
+│     └─ installation.md
+├─ static                # served as they are: logo, images
+└─ themes
+   └─ vpkit-zola
 ```
 
-The site directory is the **project root**. `content/` is the [source directory](@/guide/routing.md#source-directory) (configurable with [`srcDir`](../reference/site-config#srcdir)), and `public/` inside the site directory is where the build output goes.
+### The home page
 
-{% <vp_container type="tip"> %}
-The build writes to `<site>/public`. If using Git, add it to your `.gitignore`.
-{% </vp_container> %}
-
-### The Config File
-
-`rustpress.toml` mirrors VitePress's config, with VitePress's `themeConfig` keys flattened to the top level and spelled exactly as VitePress spells them (camelCase):
+`content/_index.md` with `layout = "home"` is VitePress's home page: a hero and features, set in its front matter. See [Home Page](@/reference/home-page.md).
 
 ```toml
-title = "My Docs"
-description = "Just playing around."
++++
+title = "My Project"
 
-[[nav]]
-text = "Guide"
-link = "/guide/getting-started/"
+[extra]
+layout = "home"
 
-[[socialLinks]]
-icon = "github"
-link = "https://github.com/me/my-docs"
+[extra.hero]
+name = "My Project"
+text = "What it is, in a line"
+actions = [{ theme = "brand", text = "Get Started", link = "@/guide/introduction.md" }]
++++
 ```
 
-Unknown keys are rejected, so a typo fails the build instead of silently doing nothing. Consult the [Site Config](@/reference/site-config.md) and [Default Theme Config](@/reference/default-theme-config.md) references for every option.
+### Doc pages
 
-### Source Files
+Every other page is a doc: the sidebar on the left, the outline of its headings on the right, the doc footer below. Its front matter can turn parts of that off. See [Front Matter](@/reference/front-matter.md).
 
-Markdown files under `content/` are **source files**. rustpress uses **file-based routing**: each `.md` file becomes a directory-style URL — `index.md` is served at `/`, `guide/getting-started.md` at `/guide/getting-started/`. Routing, links and rewrites are covered in the [Routing Guide](@/guide/routing.md).
+```toml
++++
+title = "Introduction"
+updated = 2026-10-09   # shown as "Last updated" with last_updated = true
++++
 
-### Theme assets
-
-Every generated page links `/vitepress.css`, `/js/app.js` and the fonts under `/fonts/`. These files, and the bundled color themes under `/themes/` (vpkit's), are embedded in the `rustpress` binary and written into `public/` on every build, so a site needs nothing beyond `rustpress.toml` and `content/` to come out fully styled.
-
-Files in the site's own `static/` are copied over the embedded ones, so a `static/vitepress.css` of your own replaces the theme stylesheet (see [Theming](@/guide/coming-from-vitepress.md#theming) for the supported ways to change colors before going that far). A site can also layer any other directory over the output via the [`staticOverlay`](../reference/site-config#staticoverlay) config key — the rustpress demo and docs sites use it to pick up the checkout's freshly built CSS and JS without rebuilding the binary. See [Asset Handling](@/guide/asset-handling.md) for what else belongs in `static/`.
+# Introduction
+```
 
 ## Up and Running
 
-Build the site:
-
 ```sh
-$ rustpress build my-docs
-rustpress: 3 pages + 404 + syntax.css + static/ → my-docs/public (0.0s)
+zola serve
 ```
 
-Or start the dev server, which builds once, watches the site directory, rebuilds on every change and reloads open browser tabs:
-
-```sh
-$ rustpress serve my-docs
-rustpress: serving my-docs/public on http://127.0.0.1:4173
-```
-
-Both commands default to the current directory when no site path is given. `--port` changes the dev server port. More command line usage is documented in the [CLI Reference](@/reference/cli.md).
+serves the site at `http://127.0.0.1:1111` and rebuilds it as files change; `zola build` writes it to `public/`, ready to publish as static files.
 
 ## What's Next?
 
-- To better understand how markdown files are mapped to generated HTML, proceed to the [Routing Guide](@/guide/routing.md).
-
-- To discover what you can do on a page, refer to the "Writing" section of the guide. A great place to start is [Markdown Extensions](@/guide/markdown.md).
-
-- To explore the features provided by the theme, check out the [Default Theme Config Reference](@/reference/default-theme-config.md).
-
-- If you want to change the look of your site, see [Theming](@/guide/coming-from-vitepress.md#theming).
-
-- If you already have a VitePress site, read [Coming from VitePress](@/guide/coming-from-vitepress.md) for what carries over.
-
-- Once your documentation site takes shape, make sure to read the [Deployment Guide](@/guide/deploy.md).
+- [Markdown](@/guide/markdown.md): what VitePress's markdown becomes in Zola's.
+- [Search](@/reference/search.md): one page more turns on VitePress's local search.
+- [Internationalization](@/guide/i18n.md): a site in several languages.
+- [Coming from VitePress](@/guide/coming-from-vitepress.md): moving a VitePress site over.

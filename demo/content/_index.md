@@ -1,41 +1,40 @@
 +++
-title = "rustpress"
-description = "rustpress is a standalone documentation site generator written in Rust that reads VitePress's content format and needs no Node runtime to build."
+title = "vpkit-zola"
+description = "VitePress's look for Zola: a docs theme with no Node.js and no build step."
 
 [extra]
 layout = "home"
 
 [extra.hero]
-name = "rustpress"
-text = "VitePress-format docs from one Rust binary"
-tagline = "Write the markdown you already know. Build it without Node."
-actions = [{ theme = "brand", text = "What is rustpress?", link = "@/guide/what-is-rustpress.md" }, { theme = "alt", text = "Quickstart", link = "@/guide/getting-started.md" }, { theme = "alt", text = "GitHub", link = "https://github.com/at-least/rustpress" }]
-image = { src = "/logo.svg", alt = "rustpress" }
-
-[[extra.features]]
-icon = "📝"
-title = "Focus on your content"
-details = "YAML front matter, ::: containers, code groups, line highlighting, snippets, includes, GitHub alerts — the VitePress markdown dialect, rendered by comrak and tree-sitter."
-
-[[extra.features]]
-icon = "🦀"
-title = "One static binary"
-details = "No Node at render time. The whole default theme is compiled in; a build is a single command that finishes in well under a second for a typical site."
+name = "vpkit-zola"
+text = "VitePress's look, built with Zola"
+tagline = "A docs theme for one binary: no Node.js, no build step."
+image = { src = "/logo.svg", alt = "vpkit-zola" }
+actions = [
+  { theme = "brand", text = "What is vpkit-zola?", link = "@/guide/what-is-vpkit-zola.md" },
+  { theme = "alt", text = "Getting Started", link = "@/guide/getting-started.md" },
+  { theme = "alt", text = "GitHub", link = "https://github.com/at-least/vpkit-zola" },
+]
 
 [[extra.features]]
 icon = "🎨"
-title = "The VitePress default theme"
-details = "Navbar, sidebar, outline, local search, dark mode, home hero and features, 404 — the same look, the same CSS variables, the same themeConfig keys in TOML."
+title = "VitePress's design"
+details = "The navbar, sidebar, outline, home page, search box and markdown styles of VitePress's default theme, checked against VitePress's own rendering."
 
 [[extra.features]]
-icon = "🖌️"
-title = "Complete built-in themes"
-details = "GitHub Primer, Catppuccin, Nord, Rosé Pine — full designs, light and dark, held to completeness and WCAG-contrast tests. Try them live in the Theme gallery."
-link = "https://github.com/at-least/rustpress/blob/main/docs/content/themes.md"
+icon = "📦"
+title = "Only zola"
+details = "The stylesheet, fonts and script ship prebuilt in the theme. A site needs zola and nothing else."
 
 [[extra.features]]
-icon = "🔁"
-title = "Drop-in for existing docs"
-details = "Point rustpress at a VitePress docs folder. Pages, links and front matter work as they are; the config moves from TypeScript to rustpress.toml."
+icon = "🔍"
+title = "Local search"
+details = "VitePress's search box, index and ranking, from an index page Zola builds with the site."
+
+[[extra.features]]
+icon = "🌐"
+title = "Several languages"
+details = "A language menu and settings per language, on Zola's multilingual sites."
+link = "@/guide/i18n.md"
+link_text = "Learn more"
 +++
-

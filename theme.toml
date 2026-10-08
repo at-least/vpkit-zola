@@ -44,7 +44,8 @@ homepage = "https://github.com/at-least"
 # - not_found: the 404 page's texts, { code?, title?, quote?, link?,
 #   link_label?, link_text? } (VitePress's notFound).
 # - search: VitePress's local search (true), which needs the index page
-#   content/vp-search.md (README), and vp-search.<code>.md for each other
+#   content/vp-search.md (demo/content/reference/search.md), and
+#   vp-search.<code>.md for each other
 #   language; search_button_text labels it.
 # - locales: for a site in more than one language (Zola's languages), an
 #   entry for each, { code (Zola's), label, lang?, dir? } plus any of
