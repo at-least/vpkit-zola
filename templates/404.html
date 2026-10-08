@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{#- Zola's 404 page as VitePress's: the navbar, NotFound (texts from
+    not_found under [extra]) and the footer; no sidebar, as VitePress shows
+    none there. Zola gives this template no page and no URL. -#}
+{% block title %}{{ config.extra.not_found.code if config.extra.not_found.code is defined else "404" }} | {{ config.title }}{% endblock title %}
+{% block content -%}
+{%- set not_found = config.extra.not_found -%}
+{{ <vp_nav site={config.extra} title={config.title} current={""} path={""} has_sidebar={false} has_local_nav={false} is_home={false} /> }}
+<div class="vp-content" id="VPContent"><div class="vp-not-found">
+  <p class="vp-not-found__code">{{ not_found.code if not_found.code is defined else "404" }}</p>
+  <h1 class="vp-not-found__title">{{ not_found.title if not_found.title is defined else "PAGE NOT FOUND" }}</h1>
+  <div class="vp-not-found__divider"></div>
+  <blockquote class="vp-not-found__quote">{{ not_found.quote if not_found.quote is defined else "But if you don't change your direction, and if you keep looking, you may end up where you are heading." }}</blockquote>
+  <div class="vp-not-found__action"><a class="vp-not-found__link" href="{{ get_url(path=not_found.link) if not_found.link is defined else get_url(path='/') ~ '/' }}" aria-label="{{ not_found.link_label if not_found.link_label is defined else 'go to home' }}">{{ not_found.link_text if not_found.link_text is defined else "Take me home" }}</a></div>
+</div></div>
+{{ <vp_footer site={config.extra} off={false} has_sidebar={false} /> }}
+{%- endblock content %}

@@ -216,6 +216,20 @@ const checks = [
     ],
     pairs: [['.VPNav', '.vp-nav']],
   },
+  // the 404 page: the navbar, NotFound (VitePress renders it in the
+  // browser) and the footer, no sidebar
+  {
+    name: 'not found',
+    vitepress: '/404.html',
+    path: '/404.html',
+    widths: [375, 768, 1280],
+    expect: [shown('.NotFound'), shown('.vp-not-found')],
+    pairs: [
+      ['.VPNav', '.vp-nav'],
+      ['.VPContent', '#VPContent'],
+      ['.VPFooter', '.vp-footer'],
+    ],
+  },
   {
     name: 'nav screen, groups open',
     ...NAV_PAGE,
@@ -248,14 +262,14 @@ const known = [
     reason: "the spacer takes the aside's free height, which vitepress.dev's Carbon ads share below it",
   },
   {
-    check: /^(aside|local nav, outline open|nav|doc footer|home|page without)/,
+    check: /^(aside|local nav, outline open|nav|doc footer|home|page without|not found)/,
     element: /./,
     prop: /^(box y|box height|height|bottom|top|transform)$/,
     within: 0.25,
     reason: "VitePress's minified CSS rounds line heights to six digits (2.2857143 to 2.28571, 1.3333333 to 1.33333), so each such line (the outline's, the menus', a heading's, the doc footer's, the hero's) is 1/64px shorter there and what follows sits higher, or what is centered on it (the hero image's translate(-50%)) moves; vpkit keeps the source values",
   },
   {
-    check: /^(nav|home)/,
+    check: /^(nav|home|not found)/,
     element: / > img\[0\]$/,
     prop: /^vertical-align$/,
     reason: "Tailwind's preflight gives an img vertical-align: middle where VitePress leaves baseline; the logo is a flex item, which vertical-align does not move",

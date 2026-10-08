@@ -1023,6 +1023,57 @@ button:focus-visible {
       display: none;
     }
   }
+  .vp-not-found {
+    padding: 4rem 1.5rem 6rem;
+    text-align: center;
+  }
+  @media (min-width: 48rem) {
+    .vp-not-found {
+      padding: 6rem 2rem 10.5rem;
+    }
+  }
+  .vp-not-found__code {
+    line-height: 1;
+    font-size: 4rem;
+    font-weight: 600;
+  }
+  .vp-not-found__title {
+    padding-top: 0.75rem;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .vp-not-found__divider {
+    margin: 1.5rem auto 1.125rem;
+    width: 4rem;
+    height: 1px;
+    background-color: var(--vp-c-divider);
+  }
+  .vp-not-found__quote {
+    margin: 0 auto;
+    max-width: 16rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--vp-c-text-2);
+  }
+  .vp-not-found__action {
+    padding-top: 1.25rem;
+  }
+  .vp-not-found__link {
+    display: inline-block;
+    border: 1px solid var(--vp-c-brand-1);
+    border-radius: 1rem;
+    padding: 0.1875rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--vp-c-brand-1);
+    transition: border-color 0.25s, color 0.25s;
+  }
+  .vp-not-found__link:hover {
+    border-color: var(--vp-c-brand-2);
+    color: var(--vp-c-brand-2);
+  }
   .vp-doc-outline-item--root {
     position: relative;
     z-index: 1;

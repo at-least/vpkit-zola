@@ -75,9 +75,9 @@
 {%- endcomponent vp_pager_target %}
 
 {#- VPFooter: footer = { message?, copyright? } (HTML), at the foot of a
-    page; hidden beside a sidebar; a page can set footer = false -#}
-{% component vp_footer(site, own, has_sidebar) -%}
-{%- if (site.footer.message is defined or site.footer.copyright is defined) and not (own.footer is defined and own.footer == false) -%}
+    page; hidden beside a sidebar; off: the page set footer = false -#}
+{% component vp_footer(site, off, has_sidebar) -%}
+{%- if (site.footer.message is defined or site.footer.copyright is defined) and not off -%}
 <footer class="vp-footer{% if has_sidebar %} vp-footer--has-sidebar{% endif %}"><div class="vp-footer__container">
   {%- if site.footer.message is defined %}<p class="vp-footer__message"><bdi>{{ site.footer.message | safe }}</bdi></p>{% endif -%}
   {%- if site.footer.copyright is defined %}<p class="vp-footer__copyright"><bdi>{{ site.footer.copyright | safe }}</bdi></p>{% endif -%}

@@ -32,5 +32,5 @@
 {%- endif %}
 {{ <vp_doc_page html={doc.content} has_sidebar={has_sidebar} has_aside={has_aside} outline={aside_outline} outline_label={site.outline_label} doc_footer={doc_footer} /> }}
 {%- endif %}
-{{ <vp_footer site={site} own={own} has_sidebar={has_sidebar} /> }}
+{{ <vp_footer site={site} off={own.footer is defined and own.footer == false} has_sidebar={has_sidebar} /> }}
 {%- endcomponent vp_layout %}

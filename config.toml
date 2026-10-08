@@ -45,6 +45,7 @@ last_updated_text = "Last updated"
 doc_footer_prev = "Previous page"
 doc_footer_next = "Next page"
 footer = { message = "Released under the MIT License." }
+not_found = {}
 
 [[extra.sidebar]]
 text = "Introduction"
