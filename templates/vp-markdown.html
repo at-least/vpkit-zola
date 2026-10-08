@@ -11,16 +11,18 @@
       label.
     - GitHub alerts keep their blockquote but take VitePress's classes and
       title.
+    - containers (vp_container) take their type's label for a title unless
+      given one; a code group's (vp_code_group) first block is active.
     site: the settings (base.html) with the texts VitePress's markdown
-    options give: alert_labels = { note, tip, important, warning, caution }
-    (its container labels) and code_copy_button = { tooltip_text,
-    copied_text }, each optional.
+    options give: container_labels = { tip, info, warning, danger, details,
+    note, important, caution } (its container labels, which alerts use too)
+    and code_copy_button = { tooltip_text, copied_text }, each optional.
     - footnotes take markdown-it-footnote's classes, the backref its ↩︎ and
       the list its separator.
     - task lists, their items and headings take VitePress's classes and
       tabindex. -#}
 {% component vp_markdown(html, site) -%}
-{%- set alerts = site.alert_labels -%}
+{%- set labels = site.container_labels -%}
 {%- set copy = site.code_copy_button -%}
 {%- set copy_button = `<button title="` ~ (copy.tooltip_text if copy.tooltip_text is defined else "Copy code") ~ `" data-copied="` ~ (copy.copied_text if copy.copied_text is defined else "Copied") ~ `" class="copy"></button>` -%}
 {{ html
@@ -30,11 +32,20 @@
   | regex_replace(pattern=`<span aria-hidden="true" class="giallo-ln" style="[^"]*">`, rep=`<span aria-hidden="true" class="giallo-ln">`)
   | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(<span class="line[^"]*"><span aria-hidden="true" class="giallo-ln">.*?)</code></pre>`, rep=`<div class="language-${2} line-numbers-mode" dir="ltr">` ~ copy_button ~ `<span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre><div class="line-numbers-wrapper" aria-hidden="true"></div></div>`)
   | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(.*?)</code></pre>`, rep=`<div class="language-${2}" dir="ltr">` ~ copy_button ~ `<span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre></div>`)
-  | replace(from=`<blockquote class="markdown-alert-note">`, to=`<blockquote class="note custom-block github-alert"><p class="custom-block-title">` ~ (alerts.note if alerts.note is defined else "NOTE") ~ `</p>`)
-  | replace(from=`<blockquote class="markdown-alert-tip">`, to=`<blockquote class="tip custom-block github-alert"><p class="custom-block-title">` ~ (alerts.tip if alerts.tip is defined else "TIP") ~ `</p>`)
-  | replace(from=`<blockquote class="markdown-alert-important">`, to=`<blockquote class="important custom-block github-alert"><p class="custom-block-title">` ~ (alerts.important if alerts.important is defined else "IMPORTANT") ~ `</p>`)
-  | replace(from=`<blockquote class="markdown-alert-warning">`, to=`<blockquote class="warning custom-block github-alert"><p class="custom-block-title">` ~ (alerts.warning if alerts.warning is defined else "WARNING") ~ `</p>`)
-  | replace(from=`<blockquote class="markdown-alert-caution">`, to=`<blockquote class="caution custom-block github-alert"><p class="custom-block-title">` ~ (alerts.caution if alerts.caution is defined else "CAUTION") ~ `</p>`)
+  | regex_replace(pattern=`(<div class="blocks">[^<]*<div class="language-[^"]*)"`, rep=`${1} active"`)
+  | replace(from=`<blockquote class="markdown-alert-note">`, to=`<blockquote class="note custom-block github-alert"><p class="custom-block-title">` ~ (labels.note if labels.note is defined else "NOTE") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-tip">`, to=`<blockquote class="tip custom-block github-alert"><p class="custom-block-title">` ~ (labels.tip if labels.tip is defined else "TIP") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-important">`, to=`<blockquote class="important custom-block github-alert"><p class="custom-block-title">` ~ (labels.important if labels.important is defined else "IMPORTANT") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-warning">`, to=`<blockquote class="warning custom-block github-alert"><p class="custom-block-title">` ~ (labels.warning if labels.warning is defined else "WARNING") ~ `</p>`)
+  | replace(from=`<blockquote class="markdown-alert-caution">`, to=`<blockquote class="caution custom-block github-alert"><p class="custom-block-title">` ~ (labels.caution if labels.caution is defined else "CAUTION") ~ `</p>`)
+  | replace(from=`<div class="tip custom-block"><p class="custom-block-title custom-block-title-default">TIP</p>`, to=`<div class="tip custom-block"><p class="custom-block-title custom-block-title-default">` ~ (labels.tip if labels.tip is defined else "TIP") ~ `</p>`)
+  | replace(from=`<div class="info custom-block"><p class="custom-block-title custom-block-title-default">INFO</p>`, to=`<div class="info custom-block"><p class="custom-block-title custom-block-title-default">` ~ (labels.info if labels.info is defined else "INFO") ~ `</p>`)
+  | replace(from=`<div class="warning custom-block"><p class="custom-block-title custom-block-title-default">WARNING</p>`, to=`<div class="warning custom-block"><p class="custom-block-title custom-block-title-default">` ~ (labels.warning if labels.warning is defined else "WARNING") ~ `</p>`)
+  | replace(from=`<div class="danger custom-block"><p class="custom-block-title custom-block-title-default">DANGER</p>`, to=`<div class="danger custom-block"><p class="custom-block-title custom-block-title-default">` ~ (labels.danger if labels.danger is defined else "DANGER") ~ `</p>`)
+  | replace(from=`<div class="note custom-block"><p class="custom-block-title custom-block-title-default">NOTE</p>`, to=`<div class="note custom-block"><p class="custom-block-title custom-block-title-default">` ~ (labels.note if labels.note is defined else "NOTE") ~ `</p>`)
+  | replace(from=`<div class="important custom-block"><p class="custom-block-title custom-block-title-default">IMPORTANT</p>`, to=`<div class="important custom-block"><p class="custom-block-title custom-block-title-default">` ~ (labels.important if labels.important is defined else "IMPORTANT") ~ `</p>`)
+  | replace(from=`<div class="caution custom-block"><p class="custom-block-title custom-block-title-default">CAUTION</p>`, to=`<div class="caution custom-block"><p class="custom-block-title custom-block-title-default">` ~ (labels.caution if labels.caution is defined else "CAUTION") ~ `</p>`)
+  | replace(from=`<summary data-vp-default-title>Details</summary>`, to=`<summary>` ~ (labels.details if labels.details is defined else "Details") ~ `</summary>`)
   | replace(from=`<sup class="footnote-reference"`, to=`<sup class="footnote-ref"`)
   | regex_replace(pattern=`<a href="([^"]*#fr-[^"]*)">↩</a>`, rep=`<a href="${1}" class="footnote-backref">&#8617;&#65038;</a>`)
   | regex_replace(pattern=`<li id="(fn-[^"]*)">`, rep=`<li id="${1}" class="footnote-item">`)
@@ -44,3 +55,82 @@
   | regex_replace(pattern=`<h([1-6]) id="([^"]*)">`, rep=`<h${1} id="${2}" tabindex="-1">`)
   | safe }}
 {%- endcomponent vp_markdown %}
+
+{#- vp_container: VitePress's custom containers (its ::: blocks), for a
+    page's markdown, around markdown:
+
+      {% <vp_container type="tip"> %}
+      Markdown.
+      {% </vp_container> %}
+
+    type: info, tip, warning, danger, details, note, important or caution;
+    title: its title, as text (default: the type's label, which vp_markdown
+    puts in); open: a details block shown open; no_title: no title (a
+    details block always has one). The blank lines keep the body markdown:
+    Zola renders a page's markdown after its components. -#}
+{% component vp_container(type, title="", open=false, no_title=false) -%}
+{%- if type not in ["info", "tip", "warning", "danger", "details", "note", "important", "caution"] -%}
+{{ throw(message="vpkit-zola: a vp_container's type is info, tip, warning, danger, details, note, important or caution, not " ~ type) }}
+{%- endif -%}
+{%- if type == "details" -%}
+<details class="details custom-block"{% if open %} open{% endif %}>{% if title %}<summary>{{ title }}</summary>{% else %}<summary data-vp-default-title>Details</summary>{% endif %}
+
+{{ body | safe }}
+
+</details>
+{%- else -%}
+<div class="{{ type }} custom-block">{% if no_title %}{% elif title %}<p class="custom-block-title">{{ title }}</p>{% else %}<p class="custom-block-title custom-block-title-default">{{ type | upper }}</p>{% endif %}
+
+{{ body | safe }}
+
+</div>
+{%- endif -%}
+{%- endcomponent vp_container %}
+
+{#- vp_badge: VitePress's Badge, for a page's markdown:
+    {{ <vp_badge type="tip" text="beta" /> }}, or around inline markdown:
+    {% <vp_badge type="info"> %}custom element{% </vp_badge> %}. type:
+    info, note, tip (the default, as VitePress's), important, caution,
+    warning or danger. A text= badge carries a comment the search index
+    leaves it out by, as VitePress's leaves out its text attribute. -#}
+{% component vp_badge(type="tip", text="") -%}
+{%- if type not in ["info", "note", "tip", "important", "caution", "warning", "danger"] -%}
+{{ throw(message="vpkit-zola: a vp_badge's type is info, note, tip, important, caution, warning or danger, not " ~ type) }}
+{%- endif -%}
+<span class="vp-badge{% if type != "info" %} vp-badge-{{ type }}{% endif %}">{% if body is defined %}{{ body | safe }}{% else %}<!--text-->{{ text }}{% endif %}</span>
+{%- endcomponent vp_badge %}
+
+{#- vp_code_group: VitePress's code groups (its ::: code-group), for a
+    page's markdown, around fenced code blocks named for their tabs (Zola's
+    name=, where VitePress takes [title]):
+
+      {% <vp_code_group> %}
+      ```js,name=config.js
+      const config = {}
+      ```
+      {% </vp_code_group> %}
+
+    The first block shows (vp_markdown marks it active), and
+    static/vpkit-zola.js shows another as its tab is chosen. The tabs' ids
+    come from a hash of the blocks. -#}
+{% component vp_code_group() -%}
+{%- set newline = `
+` -%}
+{%- set group = get_hash(literal=body, sha_type=256, base64=false) | truncate(length=8, end="") -%}
+{%- set names -%}
+{%- for line in body | split(pat=newline) -%}
+{%- if line is matching(pat="^```+[^` ]") and line is containing(pat="name=") -%}
+{{ line | regex_replace(pattern=`^.*[,]name=([^,]*).*$`, rep=`${1}`) }}{{ newline }}
+{%- endif -%}
+{%- endfor -%}
+{%- endset -%}
+<div class="vp-code-group"><div class="tabs">
+{%- for name in names | trim | split(pat=newline) -%}
+<input type="radio" name="group-{{ group }}" id="tab-{{ group }}-{{ loop.index }}"{% if loop.first %} checked{% endif %}><label data-title="{{ name }}" for="tab-{{ group }}-{{ loop.index }}">{{ name }}</label>
+{%- endfor -%}
+</div><div class="blocks">
+
+{{ body | safe }}
+
+</div></div>
+{%- endcomponent vp_code_group %}

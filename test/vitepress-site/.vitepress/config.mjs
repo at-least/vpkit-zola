@@ -12,7 +12,7 @@ export default {
       lang: 'zh-Hans',
       dir: 'ltr',
       markdown: {
-        container: { tipLabel: '提示', warningLabel: '警告', noteLabel: '注意', importantLabel: '重要', cautionLabel: '小心' },
+        container: { tipLabel: '提示', warningLabel: '警告', noteLabel: '注意', importantLabel: '重要', cautionLabel: '小心', infoLabel: '信息', dangerLabel: '危险', detailsLabel: '详细信息' },
         codeCopyButton: { tooltipText: '复制代码', copiedText: '已复制' },
       },
       themeConfig: {

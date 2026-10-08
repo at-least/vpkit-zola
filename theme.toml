@@ -55,9 +55,9 @@ homepage = "https://github.com/at-least"
 #   select_text?, select_key_aria_label?, navigate_text?,
 #   navigate_up_key_aria_label?, navigate_down_key_aria_label?,
 #   close_text?, close_key_aria_label? } (its local search's
-#   translations); alert_labels = { note?, tip?, important?, warning?,
-#   caution? } and code_copy_button = { tooltip_text?, copied_text? } (its
-#   markdown's).
+#   translations); container_labels = { tip?, info?, warning?, danger?,
+#   details?, note?, important?, caution? } and code_copy_button = {
+#   tooltip_text?, copied_text? } (its markdown's).
 [extra]
 sidebar = []
 outline = 2
@@ -86,5 +86,5 @@ locales = []
 lang_menu_label = "Change language"
 skip_to_content_label = "Skip to content"
 search_box = {}
-alert_labels = {}
+container_labels = {}
 code_copy_button = {}

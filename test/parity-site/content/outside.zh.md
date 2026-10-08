@@ -12,6 +12,14 @@ title = "侧边栏之外"
 > [!WARNING]
 > 警告也是。
 
+{% <vp_container type="info"> %}
+容器的标题也是。
+{% </vp_container> %}
+
+{% <vp_container type="details"> %}
+详细信息也是。
+{% </vp_container> %}
+
 ```css
 .vp-doc {
   color: red;

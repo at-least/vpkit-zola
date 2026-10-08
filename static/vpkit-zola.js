@@ -783,6 +783,26 @@ for (const time of document.querySelectorAll('.vp-last-updated time')) {
   else time.removeAttribute('lang');
 }
 
+// ---- code groups ------------------------------------------------------------------
+
+// src/client/app/composables/codeGroups.ts: a tab shows its block (the
+// first shows from the start) and comes into view
+window.addEventListener('click', (e) => {
+  const el = e.target;
+  if (!(el instanceof HTMLInputElement) || !el.matches('.vp-code-group input')) return;
+  // input <- .tabs <- .vp-code-group
+  const group = el.parentElement.parentElement;
+  const i = [...group.querySelectorAll('input')].indexOf(el);
+  const blocks = group.querySelector('.blocks');
+  const current = [...blocks.children].find((child) => child.classList.contains('active'));
+  const next = blocks.children[i];
+  if (!next || current === next) return;
+  current.classList.remove('active');
+  next.classList.add('active');
+  window.dispatchEvent(new CustomEvent('vitepress:codeGroupTabActivate', { detail: next }));
+  group.querySelector(`label[for="${el.id}"]`)?.scrollIntoView({ block: 'nearest' });
+});
+
 // ---- copy buttons ----------------------------------------------------------------
 
 // src/client/app/composables/copyCode.ts. The code is the pre's text without

@@ -143,7 +143,7 @@ dark_mode_switch_title = "切换到深色模式"
 skip_to_content_label = "跳转到内容"
 search_button_text = "搜索文档"
 search_box = { display_details = "显示详细列表", reset_button_title = "清除查询条件", back_button_title = "关闭搜索", no_results_text = "无法找到相关结果", select_text = "选择", select_key_aria_label = "回车键", navigate_text = "切换", navigate_up_key_aria_label = "向上箭头", navigate_down_key_aria_label = "向下箭头", close_text = "关闭", close_key_aria_label = "Esc 键" }
-alert_labels = { tip = "提示", warning = "警告", note = "注意", important = "重要", caution = "小心" }
+container_labels = { tip = "提示", warning = "警告", note = "注意", important = "重要", caution = "小心", info = "信息", danger = "危险", details = "详细信息" }
 code_copy_button = { tooltip_text = "复制代码", copied_text = "已复制" }
 
 [[extra.locales.sidebar]]

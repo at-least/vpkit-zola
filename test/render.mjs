@@ -46,7 +46,7 @@ const known = [
     reason: "the label is Giallo's name for the language (javascript, typescript, markdown) where VitePress shows the fence's (js, ts, md)",
   },
   {
-    element: /div\.language(\.line-numbers-mode)?\[\d+\] > pre\[0\]( > code\[0\]( > span\.(highlighted\.)?line\[\d+\])?)?$/,
+    element: /div(\.active)?\.language(\.line-numbers-mode)?\[\d+\] > pre\[0\]( > code\[0\]( > span\.(highlighted\.)?line\[\d+\])?)?$/,
     prop: /^(color|border-(top|right|bottom|left)-color)$/,
     reason: "code text takes the Giallo theme's foreground, Shiki's in VitePress (vpkit has no code colors); the borders are currentColor",
   },
@@ -60,6 +60,11 @@ const known = [
     prop: /^(box width|width)$/,
     within: 0.25,
     reason: "Giallo and Shiki split a line into different token spans, and each span's text starts on a 1/64px boundary (code is as wide as its longest line)",
+  },
+  {
+    element: /div\.vp-code-group\[\d+\] > div\.tabs\[0\] > input\[\d+\]$/,
+    prop: /^(top|bottom)$/,
+    reason: "a code group's radio inputs are fixed and invisible (VitePress's CSS): the top and bottom they compute to are their place on the page, and the parity page has fewer sections above",
   },
 ];
 
@@ -135,8 +140,10 @@ async function describe(context, stylesheet, html, viewport, docWidth, dark) {
       };
       const style = (el, rect, origin) => {
         const s = getComputedStyle(el);
+        // an element without a box (display: none) has no place to compare
+        const boxed = el.getClientRects().length > 0;
         const v = {
-          'box x': rect.x - origin.x, 'box y': rect.y - origin.y,
+          'box x': boxed ? rect.x - origin.x : 'none', 'box y': boxed ? rect.y - origin.y : 'none',
           'box width': rect.width, 'box height': rect.height,
         };
         for (const p of props) v[p] = s.getPropertyValue(p);

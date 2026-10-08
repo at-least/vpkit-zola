@@ -1,18 +1,31 @@
 {#- vp_outline: VitePress's VPDocOutlineItem list for a page's table of
     contents (Zola's page.toc), from heading level high to low (VitePress's
     outline: 2 is [2, 2], "deep" [2, 6]). A heading below the range is left
-    out; one above it (the page's h1) leaves its children in this list. -#}
-{% component vp_outline(entries, high, low, root) -%}
-<ul class="vp-doc-outline-item {% if root %}vp-doc-outline-item--root{% else %}vp-doc-outline-item--nested{% endif %}">{{ <vp_outline_entries entries={entries} high={high} low={low} /> }}</ul>
+    out; one above it (the page's h1) leaves its children in this list.
+    html: the page's content, where each entry's title is read from its
+    heading as VitePress's outline reads it (outline.ts serializeHeader):
+    its text without its badges, anchor and footnote references, which
+    the toc's title keeps. -#}
+{% component vp_outline(entries, high, low, root, html) -%}
+<ul class="vp-doc-outline-item {% if root %}vp-doc-outline-item--root{% else %}vp-doc-outline-item--nested{% endif %}">{{ <vp_outline_entries entries={entries} high={high} low={low} html={html} /> }}</ul>
 {%- endcomponent vp_outline %}
 
-{% component vp_outline_entries(entries, high, low) -%}
+{% component vp_outline_entries(entries, high, low, html) -%}
 {%- for entry in entries -%}
 {%- if entry.level < high -%}
-{{ <vp_outline_entries entries={entry.children} high={high} low={low} /> }}
+{{ <vp_outline_entries entries={entry.children} high={high} low={low} html={html} /> }}
 {%- elif entry.level <= low -%}
-{%- set nested -%}{{ <vp_outline_entries entries={entry.children} high={high} low={low} /> }}{%- endset -%}
-<li><a class="vp-doc-outline-item__outline-link" href="#{{ entry.id }}" title="{{ entry.title }}"><bdi>{{ entry.title }}</bdi></a>
+{%- set nested -%}{{ <vp_outline_entries entries={entry.children} high={high} low={low} html={html} /> }}{%- endset -%}
+{%- set heading = html | regex_replace(pattern=`(?s)^.*?<h[1-6] id="` ~ entry.id ~ `"[^>]*>(.*?)</h[1-6]>.*$`, rep=`${1}`) -%}
+{%- if heading == html -%}
+{{ throw(message="vpkit-zola: the toc's entry " ~ entry.id ~ " has no heading with that id") }}
+{%- endif -%}
+{%- set title = heading
+  | regex_replace(pattern=`<span class="vp-badge[^"]*">.*?</span>`, rep=``)
+  | regex_replace(pattern=`<a class="header-anchor".*?</a>`, rep=``)
+  | regex_replace(pattern=`<sup class="footnote-reference".*?</sup>`, rep=``)
+  | striptags | trim -%}
+<li><a class="vp-doc-outline-item__outline-link" href="#{{ entry.id }}" title="{{ title | replace(from='"', to='&quot;') | safe }}"><bdi>{{ title | safe }}</bdi></a>
   {%- if nested | trim != "" %}<ul class="vp-doc-outline-item vp-doc-outline-item--nested">{{ nested | safe }}</ul>{% endif -%}
 </li>
 {%- endif -%}

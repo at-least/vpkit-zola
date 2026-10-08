@@ -444,18 +444,42 @@ try {
   const loaded = await both('language menu, page loaded with a hash', { viewport: { width: 1440, height: 900 }, hash: '#installation' }, async (page, s) => languageLinks(page, s));
   check(loaded[0]?.[1] === '/zh/guide/getting-started#installation', `language menu, page loaded with a hash: ${JSON.stringify(loaded)}`);
 
-  // a Chinese page's markdown, with its locale's texts: the alerts' titles
-  // and the copy button's
+  // a Chinese page's markdown, with its locale's texts: the alerts' and the
+  // containers' titles and the copy button's
   const labels = await both(
     'markdown texts, Chinese',
     { viewport: { width: 1280, height: 900 }, pages: { vitepress: '/zh/outside.html', theme: '/zh/outside/' } },
     async (page) =>
       page.evaluate(() => ({
-        alerts: [...document.querySelectorAll('.custom-block-title')].map((p) => p.textContent),
+        alerts: [...document.querySelectorAll('.custom-block-title, .custom-block > summary')].map((p) => p.textContent),
         copy: [...document.querySelectorAll('button.copy')].map((b) => [b.title, b.dataset.copied]),
       })),
   );
-  check(labels.alerts.join() === '提示,警告' && labels.copy.join() === '复制代码,已复制', `markdown texts, Chinese: ${JSON.stringify(labels)}`);
+  check(labels.alerts.join() === '提示,警告,信息,详细信息' && labels.copy.join() === '复制代码,已复制', `markdown texts, Chinese: ${JSON.stringify(labels)}`);
+
+  // a code group: the first block shows; a tab shows its block
+  const group = await both(
+    'code group',
+    { viewport: { width: 1280, height: 900 }, pages: { vitepress: '/outside.html', theme: '/outside/' } },
+    async (page) => {
+      const look = () =>
+        page.evaluate(() => {
+          const group = document.querySelector('.vp-code-group');
+          return {
+            checked: [...group.querySelectorAll('input')].findIndex((i) => i.checked),
+            shown: [...group.querySelector('.blocks').children].map((b) => b.checkVisibility()),
+            labels: [...group.querySelectorAll('label')].map((l) => l.textContent),
+          };
+        });
+      const seen = { start: await look() };
+      await page.click('.vp-code-group label:nth-of-type(2)');
+      seen.second = await look();
+      await page.click('.vp-code-group label:nth-of-type(1)');
+      seen.first = await look();
+      return seen;
+    },
+  );
+  check(group.start.shown.join() === 'true,false' && group.second.shown.join() === 'false,true' && group.second.checked === 1, `code group: ${JSON.stringify(group)}`);
 
   // the nav screen's languages: the title opens and closes them in place;
   // closed again each time the screen opens

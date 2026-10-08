@@ -8,6 +8,14 @@
 > [!WARNING]
 > 警告也是。
 
+::: info
+容器的标题也是。
+:::
+
+::: details
+详细信息也是。
+:::
+
 ```css
 .vp-doc {
   color: red;

@@ -44,8 +44,15 @@
     anchors (the text is what VitePress indexes; VitePress finds sections
     by an anchored heading) -#}
 {% component vp_search_doc(doc, suffix, site) -%}
-{%- set html -%}{{ <vp_markdown html={doc.content} site={site} /> }}{%- endset -%}
+{#- VitePress indexes a <Badge text=…> still a tag: its text is not indexed -#}
+{%- set content = doc.content | regex_replace(pattern=`<span class="vp-badge[^"]*"><!--text-->[^<]*</span>`, rep=``) -%}
+{%- set html -%}{{ <vp_markdown html={content} site={site} /> }}{%- endset -%}
+{#- markdown-it ends a code block with a newline, which keeps its last
+    word apart from what follows; Giallo's ends without one. (regex_replace:
+    replace escapes its replacement in a captured string.) -#}
 {%- set html = html
+  | regex_replace(pattern=`</pre>`, rep=`</pre>
+`)
   | regex_replace(pattern='<(h[1-6])(?: [^>]*)?>', rep='␞$1␟')
   | regex_replace(pattern='</(h[1-6])>', rep='␞/$1␟')
   | regex_replace(pattern='<a class="header-anchor" href="#([^"]*)"[^>]*>&#8203;</a>', rep='␞a href="#$1"␟&#8203;␞/a␟')

@@ -133,6 +133,34 @@ The 404 page is VitePress's, its texts set by `not_found = { code, title, quote,
 
 A nav item is a link or a group, a flyout in the bar and a list that opens in place on a phone; a group holds links and titled groups of links. `active_match` is a regular expression tested on the page's path (Zola's `current_path`, such as `/guide/introduction/`); without one, a link is active on its own page. Social link icons are Simple Icons': `bluesky`, `codeberg`, `discord`, `facebook`, `github`, `gitlab`, `instagram`, `linkedin`, `mastodon`, `npm`, `slack`, `twitter`, `x`, `youtube` (`aria_label` overrides the name read out). What does not fit the bar moves into the extra menu (…) as in VitePress: the social links first, then the switch, then menu items from the right. The labels: `nav_menu_label` ("Main Navigation"), `extra_menu_label` ("More options"), `mobile_menu_label` ("Menu"), `dark_mode_switch_label` ("Appearance"), `dark_mode_switch_title` ("Switch to dark theme"), `light_mode_switch_title` ("Switch to light theme").
 
+VitePress's markdown extensions that Zola's markdown lacks are components, called from a page's markdown: custom containers (`::: tip`), badges (`<Badge>`) and code groups (`::: code-group`), rendered as VitePress renders them.
+
+~~~md
+{% <vp_container type="tip"> %}
+Markdown, as in `::: tip`.
+{% </vp_container> %}
+
+{% <vp_container type="details" title="Click me" open={true}> %}
+More markdown.
+{% </vp_container> %}
+
+## Options {{ <vp_badge type="warning" text="beta" /> }} {#options}
+
+{% <vp_code_group> %}
+
+```js,name=config.js
+export default {}
+```
+
+```ts,name=config.ts
+export default {} satisfies Config
+```
+
+{% </vp_code_group> %}
+~~~
+
+A container's `type` is `info`, `tip`, `warning`, `danger`, `details`, `note`, `important` or `caution`; `title` replaces the type's label, `open={true}` opens a details block and `no_title={true}` leaves the title out. A badge's `type` is `info`, `note`, `tip` (the default), `important`, `caution`, `warning` or `danger`, its text `text` or what it encloses (`{% <vp_badge type="info"> %}…{% </vp_badge> %}`). In a heading, Zola puts a badge's text into the heading's id where VitePress leaves it out: give the heading its id (`{#options}`); the outline leaves the badge out, as VitePress's does. A code group's tabs are its blocks' names, Zola's `name=` (VitePress's `[title]`). Zola renders the markdown of a page that calls a component as a Tera template first, so in such a page write a literal `{{`, `{%` or `{#` (in code too) inside `{% raw %}…{% endraw %}`; a heading's `{#id}` is fine as it is.
+
 A site in more than one language ([Zola's `[languages]`](https://www.getzola.org/documentation/content/multilingual/)) gets VitePress's language menu: a flyout in the navbar (in the extra menu when the bar is full, opening in place on a phone's nav screen) linking the page to the same path in each other language, the page's hash and query kept. Each language is an entry in `locales` under `[extra]`, which can give any setting in this README for that language: it replaces the site's, a whole setting at a time (a locale's `nav` or `search_box` replaces the site's), as a VitePress locale's `themeConfig` does.
 
 ```toml
@@ -164,7 +192,7 @@ The texts VitePress lets a locale translate are settings here too: the labels ab
 ```toml
 [extra]
 search_box = { display_details = "Display detailed list", reset_button_title = "Reset search", back_button_title = "Close search", no_results_text = "No results for", select_text = "to select", select_key_aria_label = "enter", navigate_text = "to navigate", navigate_up_key_aria_label = "up arrow", navigate_down_key_aria_label = "down arrow", close_text = "to close", close_key_aria_label = "escape" }
-alert_labels = { note = "NOTE", tip = "TIP", important = "IMPORTANT", warning = "WARNING", caution = "CAUTION" }
+container_labels = { tip = "TIP", info = "INFO", warning = "WARNING", danger = "DANGER", details = "Details", note = "NOTE", important = "IMPORTANT", caution = "CAUTION" }
 code_copy_button = { tooltip_text = "Copy code", copied_text = "Copied" }
 ```
 
@@ -178,13 +206,13 @@ Zola renders markdown with its own markup. The theme's templates rewrite it into
 
 What vpkit cannot style, `css/zola.css` does: Giallo's line numbers, and alerts that stay `<blockquote>`s.
 
-The layout is VitePress's components with vpkit's class names (`vpkit/layout.css`): the templates write the markup VitePress's Vue components render, the outline from Zola's table of contents at build time where VitePress fills it in the browser. What Vue renders only in the browser (the extra menu, the nav screen, the search box) is in the page, hidden or as a template, until the script needs it. `static/vpkit-zola.js` does what those components do on the page, in plain JavaScript: the appearance switch (VueUse's `useDark`, on VitePress's storage key), the flyouts, the navbar's overflow into the extra menu, the nav screen, the sidebar opening over the page on narrow screens, sections collapsing, the outline dropdown, the aside's active heading, the last updated date in the reader's language, the language links keeping the page's hash. The local search's box and index are `static/vpkit-zola-search.js`, loaded when the box first opens, with MiniSearch at the version VitePress uses (`static/vendor/minisearch.js`).
+The layout is VitePress's components with vpkit's class names (`vpkit/layout.css`): the templates write the markup VitePress's Vue components render, the outline from Zola's table of contents at build time where VitePress fills it in the browser. What Vue renders only in the browser (the extra menu, the nav screen, the search box) is in the page, hidden or as a template, until the script needs it. `static/vpkit-zola.js` does what those components do on the page, in plain JavaScript: the appearance switch (VueUse's `useDark`, on VitePress's storage key), the flyouts, the navbar's overflow into the extra menu, the nav screen, the sidebar opening over the page on narrow screens, sections collapsing, the outline dropdown, the aside's active heading, the last updated date in the reader's language, the language links keeping the page's hash, the code groups' tabs. The local search's box and index are `static/vpkit-zola-search.js`, loaded when the box first opens, with MiniSearch at the version VitePress uses (`static/vendor/minisearch.js`).
 
 The social link icons are built into the stylesheet as VitePress generates its `vp-icons.css`, from `@iconify-json/simple-icons` with Iconify's utilities, for the icons `templates/vp-nav.html` lists.
 
 Code colors are Giallo's, from the themes the site picks. Giallo writes each token's two colors inline as `light-dark()`; the theme ties them to the page's appearance (VitePress's `html.dark`, set by the stored choice or the OS) instead of the OS alone. The code block background stays vpkit's.
 
-Known differences from VitePress: the language label shows Giallo's name for the language (`javascript` where VitePress shows the fence's `js`); Zola's markdown has no inline footnotes, containers (`::: tip`), code groups or line notations (`// [!code focus]`); and a link within the page (the outline's, a heading's anchor) is the browser's, which leaves the focus on the link where VitePress's router moves it to the heading (as the theme does for a search result).
+Known differences from VitePress: the language label shows Giallo's name for the language (`javascript` where VitePress shows the fence's `js`; the search index reads it too); Zola's markdown has no inline footnotes or line notations (`// [!code focus]`), and containers, badges and code groups are the components above; a link within the page (the outline's, a heading's anchor) is the browser's, which leaves the focus on the link where VitePress's router moves it to the heading (as the theme does for a search result); and the search index reads code with its markup characters escaped as Giallo writes them (`&lt;`) where VitePress reads Shiki's (`&#x3C;`), so the stray terms those leave in an index differ.
 
 ## Develop
 
@@ -203,7 +231,7 @@ zola serve      # this repository is the theme's demo site too
 - `test/render.mjs`, on this site: `content/parity/markdown.md`, VitePress's markdown guide written for Zola, against the page VitePress rendered for vitepress.dev, each `.vp-doc` alone at two widths and in dark mode, every element's computed style, pseudo-elements and box compared; every Giallo token's color, light and dark, with the appearance stored or taken from the OS; the copy button, which must copy the code without its line numbers.
 - `test/layout.mjs`, on `test/parity-site` (vitepress.dev's guide sidebar and the headings of its getting-started page, a navbar, and a Chinese locale with vitepress.dev's labels): the sidebar, the local nav and the aside against vitepress.dev as VitePress rendered it in a browser (vpkit's snapshots, with the site's own stylesheets), opened as the snapshots were where they show a click (the sidebar on a phone, the outline dropdown); the navbar, the nav screen, the language menu, the doc footer, the footer, the home page, the 404 page, the search box and the Chinese pages against `test/vitepress-build`, VitePress's build of the same site, both running their scripts and given the same hovers, clicks and scrolls; at widths around each breakpoint (for the navbar, where what fits the bar changes) and in dark mode.
 - `test/search.mjs`: the local search's index for each language of `test/parity-site` against the one VitePress built for the same locale, section by section and term by term.
-- `test/behavior.mjs`, on `test/parity-site`: what the script does, step by step: the sidebar opening and closing (Escape gives the focus back, the backdrop closes it), a section collapsing, the outline dropdown closing on Escape or a click outside, the aside's active heading as the page scrolls; and, next to `test/vitepress-build` with the same steps and required to end the same, the appearance switch (what it stores, following the OS and other tabs), a flyout by mouse, keyboard and touch, the nav screen, the language menu (its links keeping the page's hash) and its accordion on a phone, the search box (shortcuts, keys, the query kept, back, Enter), a Chinese page's alert titles and copy button.
+- `test/behavior.mjs`, on `test/parity-site`: what the script does, step by step: the sidebar opening and closing (Escape gives the focus back, the backdrop closes it), a section collapsing, the outline dropdown closing on Escape or a click outside, the aside's active heading as the page scrolls; and, next to `test/vitepress-build` with the same steps and required to end the same, the appearance switch (what it stores, following the OS and other tabs), a flyout by mouse, keyboard and touch, the nav screen, the language menu (its links keeping the page's hash) and its accordion on a phone, the search box (shortcuts, keys, the query kept, back, Enter), a code group's tabs, a Chinese page's alert and container titles and copy button.
 
 `test/vitepress-site` is `test/parity-site` written for VitePress; `test/vitepress-build` is its build by VitePress v2.0.0-alpha.20, the version vpkit ports, committed so the tests need no VitePress. After changing the site, rebuild it from a clone of VitePress at that tag with its dependencies installed and built (the tests refuse a stale build):
 

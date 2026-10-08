@@ -9,7 +9,7 @@ updated = 2026-07-17T07:59:05Z
 
 可以直接在 StackBlitz 上进行在线尝试。
 
-## 安装
+## 安装 {{ <vp_badge text="beta" /> }}
 
 ### 前置准备
 

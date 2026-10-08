@@ -106,6 +106,156 @@ Footnotes are supported[^1], including inline ones[^2].
 [^1]: Definitions can contain **markdown** and are rendered at the end of the page.
 [^2]: This is an inline footnote.
 
+## Custom Containers
+
+Custom containers can be defined by their types, titles, and contents.
+
+### Default Title
+
+**Input**
+
+```md
+::: info
+This is an info box.
+:::
+
+::: tip
+This is a tip.
+:::
+
+::: warning
+This is a warning.
+:::
+
+::: danger
+This is a dangerous warning.
+:::
+
+::: details
+This is a details block.
+:::
+```
+
+**Output**
+
+{% <vp_container type="info"> %}
+This is an info box.
+{% </vp_container> %}
+
+{% <vp_container type="tip"> %}
+This is a tip.
+{% </vp_container> %}
+
+{% <vp_container type="warning"> %}
+This is a warning.
+{% </vp_container> %}
+
+{% <vp_container type="danger"> %}
+This is a dangerous warning.
+{% </vp_container> %}
+
+{% <vp_container type="details"> %}
+This is a details block.
+{% </vp_container> %}
+
+### Custom Title
+
+You may set custom title by appending the text right after the "type" of the container.
+
+**Input**
+
+````md
+::: danger STOP
+Danger zone, do not proceed
+:::
+
+::: details Click me to toggle the code
+```js
+console.log('Hello, VitePress!')
+```
+:::
+````
+
+**Output**
+
+{% <vp_container type="danger" title="STOP"> %}
+Danger zone, do not proceed
+{% </vp_container> %}
+
+{% <vp_container type="details" title="Click me to toggle the code"> %}
+```js
+console.log('Hello, VitePress!')
+```
+{% </vp_container> %}
+
+### Nesting
+
+The `:::` markers follow the same rules as fenced code blocks (`` ``` ``): a fence is only closed by a matching fence that is **at least as long** as the one that opened it. To nest containers (or to mix them with [code groups](https://vitepress.dev/guide/markdown#code-groups)) make the outer fence longer than the ones inside it.
+
+**Input**
+
+````md
+:::: info Outer container
+This box contains another container.
+
+::: details Inner container
+```js
+console.log('Hello, VitePress!')
+```
+:::
+::::
+````
+
+**Output**
+
+{% <vp_container type="info" title="Outer container"> %}
+This box contains another container.
+
+{% <vp_container type="details" title="Inner container"> %}
+```js
+console.log('Hello, VitePress!')
+```
+{% </vp_container> %}
+{% </vp_container> %}
+
+### Additional Attributes
+
+You can add additional attributes to the custom containers. We use [@mdit/plugin-attrs](https://mdit-plugins.github.io/attrs.html) for this feature, and it is supported on almost all markdown elements. For example, you can set the `open` attribute to make the details block open by default:
+
+**Input**
+
+````md
+::: details Click me to toggle the code {open}
+```js
+console.log('Hello, VitePress!')
+```
+:::
+````
+
+**Output**
+
+{% <vp_container type="details" title="Click me to toggle the code" open={true}> %}
+```js
+console.log('Hello, VitePress!')
+```
+{% </vp_container> %}
+
+The special `no-title` attribute renders a container without a title element (it has no effect on `details`, which always needs its summary):
+
+**Input**
+
+```md
+::: tip {no-title}
+Just want to try it out? Skip to the [Quickstart](./getting-started).
+:::
+```
+
+**Output**
+
+{% <vp_container type="tip" no_title={true}> %}
+Just want to try it out? Skip to the [Quickstart](https://vitepress.dev/guide/getting-started).
+{% </vp_container> %}
+
 ## GitHub-flavored Alerts
 
 VitePress also supports [GitHub-flavored alerts](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts) to render as callouts. They will be rendered the same as the [custom containers](https://vitepress.dev/guide/markdown#custom-containers). Unlike on GitHub, text placed right after the marker becomes the title of the alert (`> [!NOTE] Custom Title`), and [containers you registered yourself](https://vitepress.dev/guide/markdown#registering-new-containers) work here too.
@@ -319,3 +469,63 @@ const line3 = 'This is line 3'
 const line3 = 'This is line 3'
 const line4 = 'This is line 4'
 ```
+
+## Code Groups
+
+You can group multiple code blocks like this:
+
+**Input**
+
+````md
+::: code-group
+
+```js [config.js]
+/**
+ * @type {import('vitepress').UserConfig}
+ */
+const config = {
+  // ...
+}
+
+export default config
+```
+
+```ts [config.ts]
+import type { UserConfig } from 'vitepress'
+
+const config: UserConfig = {
+  // ...
+}
+
+export default config
+```
+
+:::
+````
+
+**Output**
+
+{% <vp_code_group> %}
+
+```js,name=config.js
+/**
+ * @type {import('vitepress').UserConfig}
+ */
+const config = {
+  // ...
+}
+
+export default config
+```
+
+```ts,name=config.ts
+import type { UserConfig } from 'vitepress'
+
+const config: UserConfig = {
+  // ...
+}
+
+export default config
+```
+
+{% </vp_code_group> %}

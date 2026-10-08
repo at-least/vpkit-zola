@@ -52,7 +52,7 @@ locales = []
 lang_menu_label = "Change language"
 skip_to_content_label = "Skip to content"
 search_box = {}
-alert_labels = {}
+container_labels = {}
 code_copy_button = {}
 
 [[extra.sidebar]]
