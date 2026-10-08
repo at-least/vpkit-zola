@@ -11,7 +11,8 @@
 //
 // Exits 1, listing every failed assertion.
 
-import { rmSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
 import { chromium } from 'playwright-chromium';
 
 import { VITEPRESS_BUILD, checkVitepressBuild, serve, zolaBuild } from './lib.mjs';
@@ -590,6 +591,35 @@ try {
       search.detailed.detailed === 'true' && search.enter.hash === '#installation',
     `search box: ${JSON.stringify(search)}`,
   );
+
+  // sidebars by path, VitePress's multi-sidebar: a page takes the list
+  // whose path its own starts with, the longest first, and none when no
+  // path is its own's; the guide's is then the same as the one list's
+  {
+    const read = (out, page) => readFileSync(join(out, page, 'index.html'), 'utf8');
+    const sidebarOf = (html) => /<aside class="vp-sidebar[\s\S]*?<\/aside>/.exec(html)?.[0] ?? null;
+    const pagerOf = (html) => [...html.matchAll(/vp-doc-footer__title"><bdi>([^<]*)/g)].map((m) => m[1]);
+    const byPath = (extra) =>
+      zolaBuild(OURS, 'test/parity-site', (config) => {
+        const groups = config.split('\n[[extra.sidebar]]\n').length - 1;
+        if (groups !== 5) throw new Error(`test/parity-site/config.toml: ${groups} sidebar groups, expected 5`);
+        return config.replaceAll('\n[[extra.sidebar]]\n', '\n[[extra.sidebar."/guide/"]]\n') + extra;
+      });
+    const guideOnly = byPath('');
+    const withRoot = byPath('\n[[extra.sidebar."/"]]\ntext = "Root"\nitems = [{ text = "Getting Started", link = "@/guide/getting-started.md" }]\n');
+    try {
+      const one = read(site.out, 'guide/getting-started');
+      const guide = read(guideOnly.out, 'guide/getting-started');
+      check(sidebarOf(guide) !== null && sidebarOf(guide) === sidebarOf(one), 'sidebars by path: the guide page should have the guide\'s sidebar, as with one list');
+      check(pagerOf(guide).join() === pagerOf(one).join(), `sidebars by path: the guide page's previous and next should be the one list's: ${pagerOf(guide)} | ${pagerOf(one)}`);
+      const outside = read(guideOnly.out, 'outside');
+      check(sidebarOf(outside) === null && pagerOf(outside).length === 0, 'sidebars by path: a page outside every path should have no sidebar and no previous or next');
+      check(sidebarOf(read(withRoot.out, 'guide/getting-started')) === sidebarOf(one), 'sidebars by path: the longest path should win (/guide/ over /)');
+      check(/<bdi>Root<\/bdi>/.test(sidebarOf(read(withRoot.out, 'outside')) ?? ''), 'sidebars by path: a page under / only should have /\'s sidebar');
+    } finally {
+      for (const b of [guideOnly, withRoot]) rmSync(b.dir, { recursive: true, force: true });
+    }
+  }
 
   // appearance = false: no switch and no dark mode, whatever the OS
   // prefers, as VitePress's isDark is then false

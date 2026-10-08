@@ -46,7 +46,7 @@ items = [
 ]
 ```
 
-A link is a Zola path (`@/…`, checked at build time), a path on the site or a URL. The page's item is active, and the sections around it open. A page can set `sidebar = false`, `aside = false` or its own `outline` in its front matter's `[extra]`. The labels are settings too: `outline_label` ("On this page"), `sidebar_menu_label` ("Menu"), `return_to_top_label` ("Return to top").
+For a sidebar per part of the site, VitePress's multi-sidebar, key the lists by path: `[[extra.sidebar."/guide/"]]`, `[[extra.sidebar."/reference/"]]`; a page takes the list whose path its own starts with, the longest first, and has none outside them. A link is a Zola path (`@/…`, checked at build time), a path on the site or a URL. The page's item is active, and the sections around it open. A page can set `sidebar = false`, `aside = false` or its own `outline` in its front matter's `[extra]`. The labels are settings too: `outline_label` ("On this page"), `sidebar_menu_label` ("Menu"), `return_to_top_label` ("Return to top").
 
 The navbar, also as in `themeConfig`:
 

@@ -14,7 +14,28 @@
 {{ throw(message="vpkit-zola: layout in a page's [extra] is \"doc\" or \"home\", not " ~ layout) }}
 {%- endif -%}
 {%- set is_home = layout == "home" -%}
-{%- set has_sidebar = not is_home and site.sidebar | length > 0 and not (own.sidebar is defined and own.sidebar == false) -%}
+{#- support/sidebar.ts getSidebar: the site's sidebar, or for sidebars by
+    path (a table, path prefix → groups) the one whose prefix the page's
+    path starts with, the deepest first; none: no sidebar -#}
+{%- set sidebar = [] -%}
+{%- if site.sidebar is defined and site.sidebar is array -%}
+{%- set sidebar = site.sidebar -%}
+{%- elif site.sidebar is defined -%}
+{%- set newline = `
+` -%}
+{%- set page_path = path | regex_replace(pattern="^/?", rep="/") -%}
+{%- set matches -%}
+{%- for prefix, groups in site.sidebar -%}
+{%- if page_path is starting_with(pat=prefix | regex_replace(pattern="^/?", rep="/")) -%}
+{{ 100 + prefix | split(pat="/") | length }} {{ prefix }}{{ newline }}
+{%- endif -%}
+{%- endfor -%}
+{%- endset -%}
+{%- if matches -%}
+{%- set sidebar = site.sidebar[matches | trim | split(pat=newline) | sort | last | regex_replace(pattern="^[0-9]+ ", rep="")] -%}
+{%- endif -%}
+{%- endif -%}
+{%- set has_sidebar = not is_home and sidebar | length > 0 and not (own.sidebar is defined and own.sidebar == false) -%}
 {%- if is_home -%}
 {{ <vp_nav site={site} title={title} current={current} path={path} has_sidebar={false} has_local_nav={false} is_home={true} translations={translations} home={home} /> }}
 {{ <vp_home doc={doc} site={site} /> }}
@@ -25,11 +46,11 @@
 {%- set low = 0 if range == false else (6 if range == "deep" else (range if range is number else range[1])) -%}
 {%- set aside_outline -%}{{ <vp_outline entries={doc.toc} high={high} low={low} root={true} html={doc.content} /> }}{%- endset -%}
 {%- set dropdown_outline -%}{{ <vp_outline entries={doc.toc} high={high} low={low} root={false} html={doc.content} /> }}{%- endset -%}
-{%- set doc_footer -%}{{ <vp_doc_footer doc={doc} site={site} current={current} /> }}{%- endset -%}
+{%- set doc_footer -%}{{ <vp_doc_footer doc={doc} site={site} current={current} sidebar={sidebar} /> }}{%- endset -%}
 {{ <vp_nav site={site} title={title} current={current} path={path} has_sidebar={has_sidebar} has_local_nav={dropdown_outline is containing(pat="<li>")} is_home={false} translations={translations} home={home} /> }}
 {{ <vp_local_nav has_sidebar={has_sidebar} outline={dropdown_outline} outline_label={site.outline_label} menu_label={site.sidebar_menu_label} top_label={site.return_to_top_label} /> }}
 {%- if has_sidebar %}
-{{ <vp_sidebar groups={site.sidebar} current={current} /> }}
+{{ <vp_sidebar groups={sidebar} current={current} /> }}
 {%- endif %}
 {{ <vp_doc_page html={doc.content} site={site} has_sidebar={has_sidebar} has_aside={has_aside} outline={aside_outline} doc_footer={doc_footer} /> }}
 {%- endif %}

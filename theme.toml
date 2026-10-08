@@ -13,7 +13,10 @@ homepage = "https://github.com/at-least"
 # sidebar and aside in a page's [extra]):
 # - sidebar: groups { text, link?, collapsed?, items? }, as VitePress's
 #   themeConfig.sidebar; a link is a Zola path (@/guide/intro.md), a site
-#   path or a URL. Empty: no sidebar.
+#   path or a URL. Or a table of such lists by path ("/guide/" = […]), as
+#   VitePress's multi-sidebar: a page takes the list whose path its own
+#   starts with, the longest first. None (no default here: Zola would not
+#   let a table replace a list): no sidebar.
 # - outline: the heading levels in the outline, 2, [2, 3], "deep" (2 to 6)
 #   or false.
 # - nav: the navbar's links { text, link, active_match? } and groups
@@ -59,7 +62,6 @@ homepage = "https://github.com/at-least"
 #   details?, note?, important?, caution? } and code_copy_button = {
 #   tooltip_text?, copied_text? } (its markdown's).
 [extra]
-sidebar = []
 outline = 2
 outline_label = "On this page"
 sidebar_menu_label = "Menu"

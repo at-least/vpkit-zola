@@ -3,18 +3,19 @@
     page's file under content/), the time it was last updated (with
     last_updated = true, its `updated`; the script writes it in the
     reader's language), and the pages before and after it in the sidebar.
-    doc: the page or section; current: its current_url. Its [extra] can set
+    doc: the page or section; current: its current_url; sidebar: its
+    sidebar's groups (vp_layout). Its [extra] can set
     edit_link = false, last_updated = false, and prev and next: false, a
     text, or { text, link }. Rendered whenever VitePress renders it: with a
     previous or next page not turned off, even when there is none. -#}
-{% component vp_doc_footer(doc, site, current) -%}
+{% component vp_doc_footer(doc, site, current, sidebar) -%}
 {%- set own = doc.extra -%}
 {%- set has_edit_link = site.edit_link.pattern is defined and not (own.edit_link is defined and own.edit_link == false) -%}
 {%- set has_last_updated = site.last_updated and doc.updated is defined and doc.updated and not (own.last_updated is defined and own.last_updated == false) -%}
 {#- getFlatSideBarLinks and usePrevNext: the sidebar's links in order, one
     per page (the first; a hash does not count), the page's place among
     them; a null closes the list -#}
-{%- set flat -%}{{ <vp_flat_links items={site.sidebar if site.sidebar | length > 0 and not (own.sidebar is defined and own.sidebar == false) else []} /> }}{%- endset -%}
+{%- set flat -%}{{ <vp_flat_links items={sidebar if not (own.sidebar is defined and own.sidebar == false) else []} /> }}{%- endset -%}
 {%- set links = load_data(literal="[" ~ flat ~ "null]", format="json") | unique(attribute="key") -%}
 {%- set found -%}{%- for link in links -%}{%- if link -%}{%- if link.key == current -%}{{ loop.index0 }}{% break %}{%- endif -%}{%- endif -%}{%- endfor -%}{%- endset -%}
 {%- set index = found | int if found else -1 -%}
