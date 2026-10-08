@@ -1,10 +1,30 @@
 {#- vp_doc_page: VitePress's VPContent and VPDoc around the rendered
-    markdown, with vpkit's names for their classes (vpkit/layout.css). No
-    sidebar and no aside yet. -#}
-{% component vp_doc_page(html) -%}
-<div class="vp-content" id="VPContent">
-  <div class="vp-doc-page">
+    markdown, with vpkit's names for their classes (vpkit/layout.css), and
+    the aside with the outline (VPDocAside, VPDocAsideOutline) unless
+    has_aside is false. outline: the vp_outline list. -#}
+{% component vp_doc_page(html, has_sidebar, has_aside, outline, outline_label) -%}
+<div class="vp-content{% if has_sidebar %} vp-content--has-sidebar{% endif %}" id="VPContent">
+  <div class="vp-doc-page{% if has_sidebar %} vp-doc-page--has-sidebar{% endif %}{% if has_aside %} vp-doc-page--has-aside{% endif %}">
     <div class="vp-doc-page__container">
+      {%- if has_aside %}
+      <div class="vp-doc-page__aside">
+        <div class="vp-doc-page__aside-curtain"></div>
+        <div class="vp-doc-page__aside-container">
+          <div class="vp-doc-page__aside-content">
+            <div class="vp-doc-aside">
+              <nav aria-labelledby="doc-outline-aria-label" class="vp-doc-aside-outline{% if outline is containing(pat='<li>') %} vp-doc-aside-outline--has-outline{% endif %}">
+                <div class="vp-doc-aside-outline__content">
+                  <div class="vp-doc-aside-outline__outline-marker"></div>
+                  <div aria-level="2" class="vp-doc-aside-outline__outline-title" id="doc-outline-aria-label" role="heading">{{ outline_label }}</div>
+                  {{ outline | safe }}
+                </div>
+              </nav>
+              <div class="vp-doc-aside__spacer"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {%- endif %}
       <div class="vp-doc-page__content">
         <div class="vp-doc-page__content-container">
           <main class="vp-doc-page__main">

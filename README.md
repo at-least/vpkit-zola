@@ -2,7 +2,7 @@
 
 A [Zola](https://www.getzola.org) theme with VitePress's look, built on [vpkit](https://github.com/at-least/vpkit). A docs site needs only `zola` (0.23.6 or later): the theme ships its stylesheet, fonts and script prebuilt, so there is no Node.js and no build step.
 
-Work in progress. Done: the page skeleton and the markdown, as VitePress renders them. Not yet: the navbar, the sidebar, the outline, the home page, search.
+Work in progress. Done: the page skeleton, the markdown, the sidebar, the local nav (narrow screens) and the aside with the outline, as VitePress renders them. Not yet: the navbar, the doc footer, the home page, search.
 
 ## Use
 
@@ -30,6 +30,24 @@ dark_theme = "github-dark"
 
 `github_alerts`, `bottom_footnotes`, `insert_anchor_links` and `style` are required, and `data_attr_position` must stay at its default, `"code"`: the templates stop the build and say which setting is wrong.
 
+The sidebar and the outline are set as in VitePress's `themeConfig`, under `[extra]`:
+
+```toml
+[extra]
+outline = 2            # the headings in the outline: 2, [2, 3], "deep" (2 to 6) or false
+
+[[extra.sidebar]]
+text = "Guide"
+collapsed = false      # set it (true or false) to make the section collapsible
+items = [
+  { text = "Introduction", link = "@/guide/introduction.md" },
+  { text = "Nested", items = [{ text = "Details", link = "@/guide/details.md" }] },
+  { text = "Zola", link = "https://www.getzola.org" },
+]
+```
+
+A link is a Zola path (`@/…`, checked at build time), a path on the site or a URL. The page's item is active, and the sections around it open. A page can set `sidebar = false`, `aside = false` or its own `outline` in its front matter's `[extra]`. The labels are settings too: `outline_label` ("On this page"), `sidebar_menu_label` ("Menu"), `return_to_top_label` ("Return to top").
+
 ## How it works
 
 Zola renders markdown with its own markup. The theme's templates rewrite it into VitePress's markup (`templates/vp-markdown.html`, string replacements on what Zola writes), so vpkit's `content.css`, VitePress's own styles for markdown, applies as it is:
@@ -39,6 +57,8 @@ Zola renders markdown with its own markup. The theme's templates rewrite it into
 - footnotes, task lists and heading anchors take VitePress's classes
 
 What vpkit cannot style, `css/zola.css` does: Giallo's line numbers, and alerts that stay `<blockquote>`s.
+
+The layout is VitePress's components with vpkit's class names (`vpkit/layout.css`): the templates write the markup VitePress's Vue components render, the outline from Zola's table of contents at build time where VitePress fills it in the browser. `static/vpkit-zola.js` does what those components do on the page, in plain JavaScript: the sidebar opening over the page on narrow screens, sections collapsing, the outline dropdown, the aside's active heading.
 
 Code colors are Giallo's, from the themes the site picks. Giallo writes each token's two colors inline as `light-dark()`; the theme ties them to the page's appearance (VitePress's `html.dark`, set by the stored choice or the OS) instead of the OS alone. The code block background stays vpkit's.
 
@@ -56,11 +76,13 @@ npm test        # static/ is up to date, then the browser checks
 zola serve      # this repository is the theme's demo site too
 ```
 
-`npm test` builds this site with zola and renders it in headless Chromium (`test/render.mjs`):
+`npm test` builds sites with zola and renders them in headless Chromium:
 
-- `content/parity/markdown.md`, VitePress's markdown guide written for Zola, against the page VitePress rendered for vitepress.dev: each `.vp-doc` alone at two widths and in dark mode, every element's computed style, pseudo-elements and box compared. Intentional differences are listed with their reasons in the script; one that stops occurring fails the run.
-- every Giallo token's color, light and dark, with the appearance stored or taken from the OS
-- the copy button, which must copy the code without its line numbers
+- `test/render.mjs`, on this site: `content/parity/markdown.md`, VitePress's markdown guide written for Zola, against the page VitePress rendered for vitepress.dev, each `.vp-doc` alone at two widths and in dark mode, every element's computed style, pseudo-elements and box compared; every Giallo token's color, light and dark, with the appearance stored or taken from the OS; the copy button, which must copy the code without its line numbers.
+- `test/layout.mjs`, on `test/parity-site` (vitepress.dev's guide sidebar and the headings of its getting-started page): the sidebar, the local nav and the aside against vitepress.dev as VitePress rendered it in a browser (vpkit's snapshots, with the site's own stylesheets), at widths around each breakpoint and in dark mode, opened as the snapshots were where they show a click (the sidebar on a phone, the outline dropdown).
+- `test/behavior.mjs`, on `test/parity-site`: what the script does, step by step: the sidebar opening and closing (Escape gives the focus back, the backdrop closes it), a section collapsing, the outline dropdown closing on Escape or a click outside, the aside's active heading as the page scrolls.
+
+Intentional differences are listed with their reasons in the scripts; one that stops occurring fails the run.
 
 The CSS is compiled unminified: Tailwind's minifier rounds `line-height: 1.3333333` to `1.33333`, which makes each `h2` 1/64px shorter.
 

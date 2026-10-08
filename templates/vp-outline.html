@@ -1,0 +1,20 @@
+{#- vp_outline: VitePress's VPDocOutlineItem list for a page's table of
+    contents (Zola's page.toc), from heading level high to low (VitePress's
+    outline: 2 is [2, 2], "deep" [2, 6]). A heading below the range is left
+    out; one above it (the page's h1) leaves its children in this list. -#}
+{% component vp_outline(entries, high, low, root) -%}
+<ul class="vp-doc-outline-item {% if root %}vp-doc-outline-item--root{% else %}vp-doc-outline-item--nested{% endif %}">{{ <vp_outline_entries entries={entries} high={high} low={low} /> }}</ul>
+{%- endcomponent vp_outline %}
+
+{% component vp_outline_entries(entries, high, low) -%}
+{%- for entry in entries -%}
+{%- if entry.level < high -%}
+{{ <vp_outline_entries entries={entry.children} high={high} low={low} /> }}
+{%- elif entry.level <= low -%}
+{%- set nested -%}{{ <vp_outline_entries entries={entry.children} high={high} low={low} /> }}{%- endset -%}
+<li><a class="vp-doc-outline-item__outline-link" href="#{{ entry.id }}" title="{{ entry.title }}"><bdi>{{ entry.title }}</bdi></a>
+  {%- if nested | trim != "" %}<ul class="vp-doc-outline-item vp-doc-outline-item--nested">{{ nested | safe }}</ul>{% endif -%}
+</li>
+{%- endif -%}
+{%- endfor -%}
+{%- endcomponent vp_outline_entries %}

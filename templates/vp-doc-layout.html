@@ -1,0 +1,19 @@
+{#- vp_doc_layout: a doc page as VitePress lays it out, below the navbar:
+    the local nav, the sidebar, then the doc with its aside. site: the
+    site's [extra] (the theme's defaults in theme.toml), own: the page's or
+    section's [extra], which can set sidebar = false, aside = false and
+    outline. -#}
+{% component vp_doc_layout(html, toc, site, own, current) -%}
+{%- set has_sidebar = site.sidebar | length > 0 and not (own.sidebar is defined and own.sidebar == false) -%}
+{%- set has_aside = not (own.aside is defined and own.aside == false) -%}
+{%- set range = own.outline if own.outline is defined else site.outline -%}
+{%- set high = 7 if range == false else (2 if range == "deep" else (range if range is number else range[0])) -%}
+{%- set low = 0 if range == false else (6 if range == "deep" else (range if range is number else range[1])) -%}
+{%- set aside_outline -%}{{ <vp_outline entries={toc} high={high} low={low} root={true} /> }}{%- endset -%}
+{%- set dropdown_outline -%}{{ <vp_outline entries={toc} high={high} low={low} root={false} /> }}{%- endset -%}
+{{ <vp_local_nav has_sidebar={has_sidebar} outline={dropdown_outline} outline_label={site.outline_label} menu_label={site.sidebar_menu_label} top_label={site.return_to_top_label} /> }}
+{%- if has_sidebar %}
+{{ <vp_sidebar groups={site.sidebar} current={current} /> }}
+{%- endif %}
+{{ <vp_doc_page html={html} has_sidebar={has_sidebar} has_aside={has_aside} outline={aside_outline} outline_label={site.outline_label} /> }}
+{%- endcomponent vp_doc_layout %}

@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node scripts/build.mjs --check && node test/render.mjs"
+    "test": "node scripts/build.mjs --check && node test/render.mjs && node test/layout.mjs && node test/behavior.mjs"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",

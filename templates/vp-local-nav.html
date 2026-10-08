@@ -1,0 +1,26 @@
+{#- vp_local_nav: VitePress's VPLocalNav and VPLocalNavOutlineDropdown, the
+    bar under the navbar below 80rem: the sidebar's Menu button and the
+    outline in a dropdown (outline: the vp_outline list, "" when the page
+    has none). The dropdown's items are rendered hidden; the theme's script
+    shows them. -#}
+{% component vp_local_nav(has_sidebar, outline, outline_label, menu_label, top_label) -%}
+{%- set has_outline = outline is containing(pat="<li>") -%}
+<div class="vp-local-nav
+  {%- if has_sidebar %} vp-local-nav--has-sidebar{% endif %}
+  {%- if not has_outline %} vp-local-nav--empty{% endif %}
+  {%- if not has_outline and not has_sidebar %} vp-local-nav--fixed{% endif %}">
+  <div class="vp-local-nav__container">
+    {%- if has_sidebar -%}
+    <button type="button" class="vp-local-nav__menu" aria-expanded="false" aria-controls="VPSidebarNav"><span class="vpi-align-left vp-local-nav__menu-icon" aria-hidden="true"></span><span class="vp-local-nav__menu-text">{{ menu_label }}</span></button>
+    {%- endif -%}
+    <div class="vp-local-nav-outline-dropdown" style="--vp-vh:0px;">
+      {%- if has_outline -%}
+      <button type="button" aria-expanded="false" aria-controls="vp-local-nav-outline"><span class="vp-local-nav-outline-dropdown__menu-text">{{ outline_label }}</span><span class="vpi-chevron-right vp-local-nav-outline-dropdown__icon" aria-hidden="true"></span></button>
+      <div id="vp-local-nav-outline" class="vp-local-nav-outline-dropdown__items" hidden><div class="vp-local-nav-outline-dropdown__header"><a class="vp-local-nav-outline-dropdown__top-link" href="#">{{ top_label }}</a></div><div class="vp-local-nav-outline-dropdown__outline">{{ outline | safe }}</div></div>
+      {%- else -%}
+      <button type="button">{{ top_label }}</button>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+{%- endcomponent vp_local_nav %}

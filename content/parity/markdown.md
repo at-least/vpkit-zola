@@ -1,6 +1,9 @@
 +++
 title = "Markdown Extensions"
 description = "VitePress's markdown guide, the parts Zola renders: the page the theme's checks compare with vitepress.dev's."
+
+[extra]
+outline = "deep"
 +++
 
 <!-- From VitePress's docs/en/guide/markdown.md (v2.0.0-alpha.20, MIT),

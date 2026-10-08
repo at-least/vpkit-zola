@@ -8,3 +8,17 @@ demo = ""
 [author]
 name = "at-least"
 homepage = "https://github.com/at-least"
+
+# The theme's settings, each overridable in the site's [extra] (and outline,
+# sidebar and aside in a page's [extra]):
+# - sidebar: groups { text, link?, collapsed?, items? }, as VitePress's
+#   themeConfig.sidebar; a link is a Zola path (@/guide/intro.md), a site
+#   path or a URL. Empty: no sidebar.
+# - outline: the heading levels in the outline, 2, [2, 3], "deep" (2 to 6)
+#   or false.
+[extra]
+sidebar = []
+outline = 2
+outline_label = "On this page"
+sidebar_menu_label = "Menu"
+return_to_top_label = "Return to top"

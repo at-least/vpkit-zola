@@ -23,36 +23,14 @@
 //
 // Exits 1, listing every difference, when any check fails.
 
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, extname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
+import { extname, join } from 'node:path';
 import { chromium } from 'playwright-chromium';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const UPSTREAM = join(ROOT, 'node_modules/vpkit/test/upstream');
+import { PROPS, PSEUDO_PROPS, ROOT, TYPES, UPSTREAM, same, zolaBuild } from './lib.mjs';
+
 const ORIGIN = 'https://check.test';
 const read = (file) => readFileSync(file, 'utf8');
-
-const SIDES = ['top', 'right', 'bottom', 'left'];
-const PROPS = [
-  'display', 'position', ...SIDES, 'z-index', 'box-sizing',
-  'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
-  ...SIDES.map((s) => `margin-${s}`), ...SIDES.map((s) => `padding-${s}`),
-  ...SIDES.flatMap((s) => [`border-${s}-width`, `border-${s}-style`, `border-${s}-color`]),
-  ...['top-left', 'top-right', 'bottom-right', 'bottom-left'].map((c) => `border-${c}-radius`),
-  'flex-direction', 'flex-wrap', 'justify-content', 'align-items',
-  'overflow-x', 'overflow-y', 'visibility', 'opacity', 'transform',
-  'color', 'background-color', 'background-image', 'box-shadow',
-  'font-family', 'font-size', 'font-weight', 'font-style', 'line-height', 'letter-spacing',
-  'text-align', 'text-decoration-line', 'text-transform', 'white-space', 'vertical-align',
-  'cursor', 'transition-property', 'transition-duration', 'mask-image', 'list-style-type',
-];
-const PSEUDO_PROPS = [
-  'content', 'display', 'position', ...SIDES, 'width', 'height', 'color', 'background-color',
-  'background-image', 'opacity', 'transform', 'mask-image',
-];
 
 // widths of .vp-doc: a phone, and VitePress's content column
 const WIDTHS = [[375, 327], [1280, 688]];
@@ -93,13 +71,6 @@ const upstreamOnly = [
 
 // ---- the two sides --------------------------------------------------------
 
-function zolaBuild() {
-  const dir = mkdtempSync(join(tmpdir(), 'vpkit-zola-check-'));
-  const out = join(dir, 'site');
-  execFileSync('zola', ['build', '--base-url', `${ORIGIN}/zola`, '--output-dir', out], { cwd: ROOT, stdio: 'pipe' });
-  return { dir, out };
-}
-
 // VitePress's stylesheets for the markdown, as its theme loads them; fonts.css
 // without its webfont marker (a Google Fonts import), its subsets from the
 // font files vpkit copied from VitePress
@@ -114,8 +85,6 @@ function upstreamCss() {
     read(join(UPSTREAM, 'vp-code-group.css')),
   ].join('\n');
 }
-
-const TYPES = { '.css': 'text/css', '.js': 'text/javascript', '.woff2': 'font/woff2', '.html': 'text/html' };
 
 async function serve(context, site) {
   const css = upstreamCss();
@@ -238,14 +207,6 @@ async function describe(context, stylesheet, html, viewport, docWidth, dark) {
   return items;
 }
 
-// lengths match within 1/32px: layout rounds to 1/64px
-const PX = /^-?\d+(\.\d+)?px$/;
-function same(a, b) {
-  if (a === b) return true;
-  if (typeof a === 'number' && typeof b === 'number') return Math.abs(a - b) <= 1 / 32;
-  return typeof a === 'string' && typeof b === 'string' && PX.test(a) && PX.test(b) && Math.abs(parseFloat(a) - parseFloat(b)) <= 1 / 32;
-}
-
 const failures = [];
 const expected = [];
 let compared = 0;
@@ -328,7 +289,7 @@ async function colors(browser, url, os, stored) {
 
 // ---- run ----------------------------------------------------------------------
 
-const site = zolaBuild();
+const site = zolaBuild(`${ORIGIN}/zola`);
 const browser = await chromium.launch();
 try {
   const context = await browser.newContext();

@@ -18,3 +18,24 @@ external_links_no_referrer = true
 style = "inline"
 light_theme = "github-light"
 dark_theme = "github-dark"
+
+# The theme's settings (defaults in theme.toml, which Zola applies to sites
+# that use the theme, not to this one).
+[extra]
+outline = 2
+outline_label = "On this page"
+sidebar_menu_label = "Menu"
+return_to_top_label = "Return to top"
+
+[[extra.sidebar]]
+text = "Introduction"
+items = [
+  { text = "vpkit-zola", link = "@/_index.md" },
+]
+
+[[extra.sidebar]]
+text = "Parity"
+collapsed = false
+items = [
+  { text = "Markdown Extensions", link = "@/parity/markdown.md" },
+]

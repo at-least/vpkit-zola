@@ -1,0 +1,57 @@
+{#- vp_sidebar: VitePress's VPSidebar, VPSidebarGroup and VPSidebarItem
+    (vpkit/layout.css) for groups from [extra] sidebar: each
+    { text, link?, collapsed?, items?, rel?, target? }, a link a Zola path
+    (@/guide/intro.md), a site path or a URL. current: the page's URL, which
+    makes its item active and opens the sections around it. A section is
+    collapsible when it sets collapsed, as in VitePress. -#}
+{% component vp_sidebar(groups, current) -%}
+<aside class="vp-sidebar">
+  <div class="vp-sidebar__curtain"></div>
+  <nav class="vp-sidebar__nav" id="VPSidebarNav" aria-labelledby="sidebar-aria-label" tabindex="-1">
+    <span class="visually-hidden" id="sidebar-aria-label">Sidebar Navigation</span>
+    {%- for group in groups %}
+    <div class="vp-sidebar-group vp-sidebar-group--no-transition">{{ <vp_sidebar_item item={group} depth={0} current={current} /> }}</div>
+    {%- endfor %}
+  </nav>
+</aside>
+{%- endcomponent vp_sidebar %}
+
+{% component vp_sidebar_item(item, depth, current) -%}
+{%- set external = item.link is defined and (item.link is starting_with(pat="http://") or item.link is starting_with(pat="https://")) -%}
+{%- set url = (item.link if external else get_url(path=item.link)) if item.link is defined else "" -%}
+{%- set has_children = item.items is defined and item.items | length > 0 -%}
+{%- set children -%}
+{%- if has_children and depth < 5 -%}
+{%- for child in item.items -%}{{ <vp_sidebar_item item={child} depth={depth + 1} current={current} /> }}{%- endfor -%}
+{%- endif -%}
+{%- endset -%}
+{%- set is_active = url != "" and url == current -%}
+{%- set has_active = is_active or children is containing(pat='aria-current="page"') -%}
+{%- set collapsible = item.collapsed is defined -%}
+{%- set collapsed = collapsible and item.collapsed and not has_active -%}
+{%- set text_tag = "h" ~ (depth + 2) if has_children and depth < 5 else "p" -%}
+{%- set section_tag = "section" if item.text is defined and text_tag != "p" else "div" -%}
+<{{ section_tag }} class="vp-sidebar-item vp-sidebar-item--level-{{ depth }}
+  {%- if collapsible %} vp-sidebar-item--collapsible{% endif %}
+  {%- if collapsed %} vp-sidebar-item--collapsed{% endif %}
+  {%- if url %} vp-sidebar-item--is-link{% endif %}
+  {%- if is_active %} vp-sidebar-item--is-active{% endif %}
+  {%- if has_active %} vp-sidebar-item--has-active{% endif %}">
+  {%- if item.text is defined -%}
+  <div class="vp-sidebar-item__item"><div class="vp-sidebar-item__indicator"></div>
+    {%- if url -%}
+    <a class="vp-sidebar-item__link{% if external %} vp-external-link-icon{% endif %}" href="{{ url }}"
+      {%- if is_active %} aria-current="page"{% endif %}
+      {%- if item.target is defined %} target="{{ item.target }}"{% elif external %} target="_blank"{% endif %}
+      {%- if item.rel is defined %} rel="{{ item.rel }}"{% elif external %} rel="noreferrer"{% endif %}><{{ text_tag }} class="vp-sidebar-item__text"><bdi>{{ item.text | safe }}</bdi></{{ text_tag }}></a>
+    {%- else -%}
+    <{{ text_tag }} class="vp-sidebar-item__text"><bdi>{{ item.text | safe }}</bdi></{{ text_tag }}>
+    {%- endif -%}
+    {%- if collapsible and has_children -%}
+    <button type="button" class="vp-sidebar-item__caret" aria-label="toggle section" aria-expanded="{{ not collapsed }}"><span class="vpi-chevron-right vp-sidebar-item__caret-icon"></span></button>
+    {%- endif -%}
+  </div>
+  {%- endif -%}
+  {%- if has_children %}<ul class="vp-sidebar-item__items">{% if depth < 5 %}<li>{{ children | safe }}</li>{% endif %}</ul>{% endif -%}
+</{{ section_tag }}>
+{%- endcomponent vp_sidebar_item %}
