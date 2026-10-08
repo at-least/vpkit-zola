@@ -1,0 +1,39 @@
+{#- vp_markdown: the HTML Zola renders from markdown, rewritten into
+    VitePress's markup so vpkit's content.css styles it as VitePress's own.
+    Each step matches only what Zola itself writes; code text is escaped,
+    so it cannot match:
+    - code blocks: Giallo's lines become .line (.highlighted for hl_lines)
+      and its line numbers lose their own color; each block is wrapped
+      whole, as VitePress does, in div.language-<lang> with the copy button
+      and the language label, plus line-numbers-mode and an empty
+      .line-numbers-wrapper when the first line is numbered (linenos). A
+      fence without a language (Giallo's "plain") gets VitePress's empty
+      label.
+    - GitHub alerts keep their blockquote but take VitePress's classes and
+      title.
+    - footnotes take markdown-it-footnote's classes, the backref its ↩︎ and
+      the list its separator.
+    - task lists, their items and headings take VitePress's classes and
+      tabindex. -#}
+{% component vp_markdown(html) -%}
+{{ html
+  | replace(from=`<code data-lang="plain"`, to=`<code data-lang=""`)
+  | regex_replace(pattern=`<span class="giallo-l" style="background-color:[^"]*">`, rep=`<span class="line highlighted">`)
+  | replace(from=`<span class="giallo-l">`, to=`<span class="line">`)
+  | regex_replace(pattern=`<span aria-hidden="true" class="giallo-ln" style="[^"]*">`, rep=`<span aria-hidden="true" class="giallo-ln">`)
+  | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(<span class="line[^"]*"><span aria-hidden="true" class="giallo-ln">.*?)</code></pre>`, rep=`<div class="language-${2} line-numbers-mode" dir="ltr"><button title="Copy code" data-copied="Copied" class="copy"></button><span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre><div class="line-numbers-wrapper" aria-hidden="true"></div></div>`)
+  | regex_replace(pattern=`(?s)<pre class="giallo" style="([^"]*)" *><code data-lang="([^"]*)"([^>]*)>(.*?)</code></pre>`, rep=`<div class="language-${2}" dir="ltr"><button title="Copy code" data-copied="Copied" class="copy"></button><span class="lang">${2}</span><pre class="giallo" style="${1}" tabindex="0" dir="ltr"><code${3}>${4}</code></pre></div>`)
+  | replace(from=`<blockquote class="markdown-alert-note">`, to=`<blockquote class="note custom-block github-alert"><p class="custom-block-title">NOTE</p>`)
+  | replace(from=`<blockquote class="markdown-alert-tip">`, to=`<blockquote class="tip custom-block github-alert"><p class="custom-block-title">TIP</p>`)
+  | replace(from=`<blockquote class="markdown-alert-important">`, to=`<blockquote class="important custom-block github-alert"><p class="custom-block-title">IMPORTANT</p>`)
+  | replace(from=`<blockquote class="markdown-alert-warning">`, to=`<blockquote class="warning custom-block github-alert"><p class="custom-block-title">WARNING</p>`)
+  | replace(from=`<blockquote class="markdown-alert-caution">`, to=`<blockquote class="caution custom-block github-alert"><p class="custom-block-title">CAUTION</p>`)
+  | replace(from=`<sup class="footnote-reference"`, to=`<sup class="footnote-ref"`)
+  | regex_replace(pattern=`<a href="([^"]*#fr-[^"]*)">↩</a>`, rep=`<a href="${1}" class="footnote-backref">&#8617;&#65038;</a>`)
+  | regex_replace(pattern=`<li id="(fn-[^"]*)">`, rep=`<li id="${1}" class="footnote-item">`)
+  | replace(from=`<section class="footnotes">`, to=`<hr class="footnotes-sep"><section class="footnotes">`)
+  | regex_replace(pattern=`<ul>([^<]*)<li><input disabled="" type="checkbox"`, rep=`<ul class="task-list-container">${1}<li><input disabled="" type="checkbox"`)
+  | regex_replace(pattern=`<li><input disabled="" type="checkbox"( checked="")?/>`, rep=`<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled=""${1}>`)
+  | regex_replace(pattern=`<h([1-6]) id="([^"]*)">`, rep=`<h${1} id="${2}" tabindex="-1">`)
+  | safe }}
+{%- endcomponent vp_markdown %}

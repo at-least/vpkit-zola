@@ -1,0 +1,17 @@
+{
+  "name": "vpkit-zola",
+  "version": "0.1.0",
+  "description": "Builds and checks the vpkit Zola theme; a docs site using the theme needs only zola",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs --check && node test/render.mjs"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "playwright-chromium": "^1.62.1",
+    "tailwindcss": "^4.3.3",
+    "vpkit": "file:../vpkit"
+  }
+}

@@ -1,0 +1,38 @@
+{#- The page around every template: VitePress's head (its dark mode check
+    runs before the first paint) and Layout, with vpkit's class names.
+    vpkit-zola rewrites what Zola renders into VitePress's markup, which
+    needs these [markdown] settings; a site without them fails here. -#}
+{%- if config.markdown.highlighting.style != "inline" -%}
+{{ throw(message=`vpkit-zola: set style = "inline" under [markdown.highlighting]: the theme switches Giallo's inline light-dark() colors with the page's appearance`) }}
+{%- endif -%}
+{%- if not config.markdown.github_alerts -%}
+{{ throw(message=`vpkit-zola: set github_alerts = true under [markdown]: the theme renders alerts as VitePress's custom blocks`) }}
+{%- endif -%}
+{%- if not config.markdown.bottom_footnotes -%}
+{{ throw(message=`vpkit-zola: set bottom_footnotes = true under [markdown]: the theme styles footnotes collected at the end, as VitePress renders them`) }}
+{%- endif -%}
+{%- if config.markdown.insert_anchor_links != "right" -%}
+{{ throw(message=`vpkit-zola: set insert_anchor_links = "right" under [markdown]: VitePress's header anchors follow the heading text`) }}
+{%- endif -%}
+<!doctype html>
+<html lang="{{ lang }}" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+    <meta name="description" content="{% block description %}{{ config.description or "" }}{% endblock description %}">
+    <link rel="stylesheet" href="{{ get_url(path='vpkit-zola.css') }}">
+    <link rel="preload" href="{{ get_url(path='fonts/inter-roman-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <script id="check-dark-mode">(()=>{let e=localStorage.getItem(`vitepress-theme-appearance`)||`auto`,t=window.matchMedia(`(prefers-color-scheme: dark)`).matches;(!e||e===`auto`?t:e===`dark`)&&document.documentElement.classList.add(`dark`)})();</script>
+    <script src="{{ get_url(path='vpkit-zola.js') }}" defer></script>
+  </head>
+  <body>
+    <div id="app">
+      <div class="vp-layout">
+        <span tabindex="-1"></span>
+        <a href="#VPContent" class="vp-skip-link visually-hidden">Skip to content</a>
+        {% block content %}{% endblock content %}
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,12 @@
+/* vpkit-zola — the theme's stylesheet, built into static/vpkit-zola.css by
+ * `npm run build`: Tailwind's preflight and theme, vpkit (the design), and
+ * zola.css (what Zola's output needs beyond VitePress's markup). The
+ * templates use vpkit's classes only, so no utilities are generated. */
+
+@import "tailwindcss" source(none);
+@import "vpkit/fonts.css";
+@import "vpkit";
+@import "vpkit/icons.css";
+@import "vpkit/layout.css";
+@import "vpkit/content.css";
+@import "./zola.css";

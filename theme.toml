@@ -1,0 +1,10 @@
+name = "vpkit-zola"
+description = "VitePress's default theme look for Zola docs sites, built on vpkit"
+license = "MIT"
+homepage = "https://github.com/at-least/vpkit-zola"
+min_version = "0.23.6"
+demo = ""
+
+[author]
+name = "at-least"
+homepage = "https://github.com/at-least"

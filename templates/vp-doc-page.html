@@ -1,0 +1,18 @@
+{#- vp_doc_page: VitePress's VPContent and VPDoc around the rendered
+    markdown, with vpkit's names for their classes (vpkit/layout.css). No
+    sidebar and no aside yet. -#}
+{% component vp_doc_page(html) -%}
+<div class="vp-content" id="VPContent">
+  <div class="vp-doc-page">
+    <div class="vp-doc-page__container">
+      <div class="vp-doc-page__content">
+        <div class="vp-doc-page__content-container">
+          <main class="vp-doc-page__main">
+            <div style="position:relative;" class="vp-doc"><div>{{ <vp_markdown html={html} /> }}</div></div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{%- endcomponent vp_doc_page %}

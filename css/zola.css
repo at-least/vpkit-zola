@@ -1,0 +1,85 @@
+/* vpkit-zola — what Zola's markdown needs on top of vpkit's content.css,
+ * once templates/vp-markdown.html has rewritten it into VitePress's markup.
+ * Code colors are Giallo's, as the site's [markdown.highlighting] picks
+ * them; vpkit has none of its own. */
+
+/* The page around vpkit's layout: VitePress's base.css rules for :root
+   and body, which vpkit leaves to the site that uses it. */
+@layer base {
+  :root:is(.dark) {
+    color-scheme: dark;
+  }
+
+  :root:not(.dark) {
+    color-scheme: light;
+  }
+
+  body {
+    color: var(--vp-c-text-1);
+    background-color: var(--vp-c-bg);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-autospace: normal;
+    text-spacing-trim: normal;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--vp-c-text-3);
+  }
+}
+
+@layer components {
+  /* Giallo writes each color inline as light-dark(light, dark), with
+     color-scheme: light dark on the pre, which follows the OS. Tie it to
+     the page's appearance instead, and keep the code block background
+     vpkit gives the wrapper rather than the Giallo theme's. */
+  .vp-doc pre.giallo {
+    color-scheme: light !important;
+    background-color: transparent !important;
+  }
+
+  .dark .vp-doc pre.giallo {
+    color-scheme: dark !important;
+  }
+
+  /* Tokens Giallo leaves uncolored take the theme's foreground, the pre's
+     color, as Shiki's do in VitePress: not the code block color vpkit
+     gives code. */
+  .vp-doc pre.giallo > code {
+    color: inherit;
+  }
+
+  /* VitePress keeps line numbers in a column outside the scrolling pre;
+     Giallo writes one at the start of each line. Taken out of the line
+     and out of the pre (static, so the wrapper is their containing
+     block), they sit in the column the empty .line-numbers-wrapper draws,
+     and stay put when the code scrolls sideways. */
+  .vp-doc div[class*='language-'].line-numbers-mode > pre.giallo {
+    position: static;
+  }
+
+  .vp-doc .line-numbers-mode .giallo-ln {
+    position: absolute;
+    left: 0;
+    z-index: 3;
+    width: calc(2rem - 1px);
+    text-align: center;
+    color: var(--vp-code-line-number-color);
+    transition: color 0.5s;
+  }
+
+  /* GitHub alerts stay blockquotes, with VitePress's custom-block classes:
+     take back what vp-doc.css gives a quote and not a custom block, the
+     2px divider on the left, 16px paragraphs and the transitions. */
+  .vp-doc blockquote.custom-block {
+    border-left-width: 1px;
+    transition: initial;
+  }
+
+  .vp-doc blockquote.custom-block > p {
+    font-size: inherit;
+    transition: initial;
+  }
+}
