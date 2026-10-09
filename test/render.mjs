@@ -76,7 +76,9 @@ const upstreamOnly = [
 
 // ---- the two sides --------------------------------------------------------
 
-// VitePress's stylesheets for the markdown, as its theme loads them; fonts.css
+// VitePress's stylesheets for the markdown, in the order its theme imports
+// them (without-fonts.ts), which decides ties: custom-block.css's
+// `.custom-block a` comes before vp-doc.css's `.vp-doc a`; fonts.css
 // without its webfont marker (a Google Fonts import), its subsets from the
 // font files vpkit copied from VitePress
 function upstreamCss() {
@@ -85,9 +87,9 @@ function upstreamCss() {
     .replaceAll("url('../fonts/", "url('/fonts/");
   return [
     read(join(UPSTREAM, 'vars.css')), fonts, read(join(UPSTREAM, 'base.css')),
-    read(join(UPSTREAM, 'utils.css')), read(join(UPSTREAM, 'icons.css')),
-    read(join(UPSTREAM, 'vp-doc.css')), read(join(UPSTREAM, 'custom-block.css')),
-    read(join(UPSTREAM, 'vp-code-group.css')),
+    read(join(UPSTREAM, 'icons.css')), read(join(UPSTREAM, 'utils.css')),
+    read(join(UPSTREAM, 'custom-block.css')), read(join(UPSTREAM, 'vp-code-group.css')),
+    read(join(UPSTREAM, 'vp-doc.css')),
   ].join('\n');
 }
 
