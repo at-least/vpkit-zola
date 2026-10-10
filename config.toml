@@ -54,6 +54,7 @@ skip_to_content_label = "Skip to content"
 search_box = {}
 container_labels = {}
 code_copy_button = {}
+head = []
 
 [[extra.sidebar]]
 text = "Introduction"

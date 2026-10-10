@@ -51,6 +51,7 @@
     <script id="check-dark-mode">(()=>{let e=localStorage.getItem(`vitepress-theme-appearance`)||`auto`,t=window.matchMedia(`(prefers-color-scheme: dark)`).matches;(!e||e===`auto`?t:e===`dark`)&&document.documentElement.classList.add(`dark`)})();</script>
     {%- endif %}
     <script src="{{ get_url(path='vpkit-zola.js') }}" defer></script>
+    {{ <vp_head tags={site.head} /> }}
   </head>
   <body>
     <div id="app">

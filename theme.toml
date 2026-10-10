@@ -62,6 +62,10 @@ homepage = "https://github.com/at-least"
 #   translations); container_labels = { tip?, info?, warning?, danger?,
 #   details?, note?, important?, caution? } and code_copy_button = {
 #   tooltip_text?, copied_text? } (its markdown's).
+# - head: tags for every page's <head>, after the theme's, as VitePress's
+#   head (site config): [{ tag, attrs?, content? }], content the element's
+#   inner HTML. An href or src that is a path in the site (/favicon.svg)
+#   goes through get_url, as the logo's does.
 [extra]
 outline = 2
 outline_label = "On this page"
@@ -91,3 +95,4 @@ skip_to_content_label = "Skip to content"
 search_box = {}
 container_labels = {}
 code_copy_button = {}
+head = []

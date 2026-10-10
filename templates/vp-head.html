@@ -1,0 +1,15 @@
+{#- vp_head: VitePress's head (its site config): the tags a site adds to
+    every page's <head>, after the theme's, from [extra] head = [{ tag,
+    attrs?, content? }], VitePress's [tag, attrs, innerHTML]. An href or
+    src that is a path in the site (/favicon.svg, not //host/…) goes
+    through get_url, as the logo's does, so it holds under base_url
+    wherever the site is served; VitePress leaves its head's URLs as
+    written. base, link and meta are void: no content, no end tag. -#}
+{% component vp_head(tags) -%}
+{%- for t in tags -%}
+<{{ t.tag }}
+{%- if t.attrs is defined %}{% for name, value in t.attrs %} {{ name }}="{{ get_url(path=value) if name in ["href", "src"] and value is matching(pat="^/(?:[^/]|$)") else value }}"{% endfor %}{% endif -%}
+>
+{%- if t.tag not in ["base", "link", "meta"] %}{% if t.content is defined %}{{ t.content | safe }}{% endif %}</{{ t.tag }}>{% endif %}
+{%- endfor -%}
+{%- endcomponent vp_head %}

@@ -26,6 +26,7 @@ A VitePress site's pages move to Zola's `content/` with small changes, and its c
 | `notFound` | `not_found` |
 | `search: { provider: 'local' }` | `search = true` and an index page |
 | `locales` (site config) | Zola's `[languages]` and `locales` |
+| `head` (site config), `[tag, attrs, innerHTML]` | `head`, `{ tag, attrs, content }`, a site path in an `href` or `src` through Zola's `base_url` |
 
 A sidebar's `base` has no equivalent: write each link whole. The [settings reference](@/reference/settings.md) has every key.
 

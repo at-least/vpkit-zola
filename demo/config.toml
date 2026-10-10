@@ -22,6 +22,7 @@ dark_theme = "github-dark"
 
 [extra]
 logo = "/logo.svg"
+head = [{ tag = "link", attrs = { rel = "icon", type = "image/svg+xml", href = "/logo.svg" } }]
 nav = [
   { text = "Guide", link = "@/guide/what-is-vpkit-zola.md", active_match = "^/guide/" },
   { text = "Reference", link = "@/reference/settings.md", active_match = "^/reference/" },

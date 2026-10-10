@@ -24,6 +24,22 @@ The markdown options the theme needs are Zola's, under `[markdown]`: see [Gettin
 | `footer` | `{}` | `{ message?, copyright? }` (HTML) at the foot of pages without a sidebar. [Doc Footer](@/reference/doc-footer.md#site-footer) |
 | `not_found` | `{}` | The 404 page's texts: `{ code?, title?, quote?, link?, link_label?, link_text? }`. |
 
+## Head
+
+| Setting | Default | |
+| --- | --- | --- |
+| `head` | `[]` | Tags for every page's `<head>`, after the theme's: `{ tag, attrs?, content? }`, `content` the element's inner HTML. |
+
+```toml
+[extra]
+head = [
+  { tag = "link", attrs = { rel = "icon", type = "image/svg+xml", href = "/logo.svg" } },
+  { tag = "script", attrs = { src = "/analytics.js", defer = "" } },
+]
+```
+
+An `href` or `src` that is a path in the site (`/logo.svg`) goes through Zola's `base_url`, as the logo's does, so it holds wherever the site is served; VitePress leaves its head's URLs as written. This site's favicon is one.
+
 ## Doc Footer
 
 | Setting | Default | |
