@@ -3,25 +3,6 @@
  * Code colors are Giallo's, as the site's [markdown.highlighting] picks
  * them; vpkit has none of its own. */
 
-/* The page around vpkit's layout: VitePress's base.css rules for body,
-   which vpkit leaves to the site that uses it. */
-@layer base {
-  body {
-    color: var(--vp-c-text-1);
-    background-color: var(--vp-c-bg);
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-autospace: normal;
-    text-spacing-trim: normal;
-  }
-
-  input::placeholder,
-  textarea::placeholder {
-    color: var(--vp-c-text-3);
-  }
-}
-
 @layer components {
   /* Giallo writes each color inline as light-dark(light, dark), with
      color-scheme: light dark on the pre, which follows the OS. Tie it to
