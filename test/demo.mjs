@@ -3,7 +3,9 @@
 // ::: container line, <Badge>, [[toc]], code notation or Tera tag in the
 // text outside code. Every page's <head> but the search index's (a page of
 // data, noindex) ends with the site's head setting, its favicon, the site
-// path under base_url.
+// path under base_url. A page's title is VitePress's (createTitle): the
+// page's, then the site's, but once where the two are the same (the home
+// page).
 //
 //   node test/demo.mjs
 //
@@ -38,6 +40,13 @@ try {
     ]) {
       if (pattern.test(text)) failures.push(`${file}: ${what}`);
     }
+  }
+  for (const [file, title] of [
+    ['index.html', 'vpkit-zola'],
+    ['guide/getting-started/index.html', 'Getting Started | vpkit-zola'],
+  ]) {
+    const got = /<title>([^<]*)<\/title>/.exec(readFileSync(join(out, file), 'utf8'))?.[1];
+    if (got !== title) failures.push(`${file}: <title>${got}</title>, not ${title}`);
   }
 } catch (e) {
   failures.push(`zola build demo: ${e.stderr ?? e.message}`);
