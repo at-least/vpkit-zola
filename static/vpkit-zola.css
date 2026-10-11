@@ -953,6 +953,12 @@ button:focus-visible {
     background-color: currentColor;
     color: inherit;
   }
+  @media (forced-colors: active) {
+    [class^='vpi-']:not(.bg), [class*=' vpi-']:not(.bg), .vp-icon:not(.bg) {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+  }
   .vpi-align-left {
     --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 12H3m14 6H3M21 6H3'/%3E%3C/svg%3E");
   }
