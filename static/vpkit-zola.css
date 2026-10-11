@@ -3368,6 +3368,8 @@ button:focus-visible {
   .vp-local-search-box svg {
     flex: none;
   }
+}
+@layer base {
   .custom-block {
     border: 1px solid transparent;
     border-radius: 0.5rem;
@@ -4015,6 +4017,8 @@ button:focus-visible {
     content: '\2060';
     color: currentColor;
   }
+}
+@layer components {
   .vp-badge {
     --vp-badge-padding: 0.625rem;
     --vp-badge-line-height: 1.8333333;
