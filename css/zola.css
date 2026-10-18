@@ -1,4 +1,4 @@
-/* vpkit-zola — what Zola's markdown needs on top of vpkit's content.css,
+/* vpkit-zola — what Zola's markdown needs on top of vpkit's prose.css,
  * once templates/vp-markdown.html has rewritten it into VitePress's markup.
  * Code colors are Giallo's, as the site's [markdown.highlighting] picks
  * them; vpkit has none of its own. */

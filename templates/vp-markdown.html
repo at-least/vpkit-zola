@@ -1,5 +1,5 @@
 {#- vp_markdown: the HTML Zola renders from markdown, rewritten into
-    VitePress's markup so vpkit's content.css styles it as VitePress's own.
+    VitePress's markup so vpkit's prose.css styles it as VitePress's own.
     Each step matches only what Zola itself writes; code text is escaped,
     so it cannot match:
     - code blocks: Giallo's lines become .line (.highlighted for hl_lines)
@@ -97,7 +97,7 @@
 {%- if type not in ["info", "note", "tip", "important", "caution", "warning", "danger"] -%}
 {{ throw(message="vpkit-zola: a vp_badge's type is info, note, tip, important, caution, warning or danger, not " ~ type) }}
 {%- endif -%}
-<span class="vp-badge{% if type != "info" %} vp-badge-{{ type }}{% endif %}">{% if body is defined %}{{ body | safe }}{% else %}<!--text-->{{ text }}{% endif %}</span>
+<span class="vp-badge"{% if type != "info" %} data-variant="{{ type }}"{% endif %}>{% if body is defined %}{{ body | safe }}{% else %}<!--text-->{{ text }}{% endif %}</span>
 {%- endcomponent vp_badge %}
 
 {#- vp_code_group: VitePress's code groups (its ::: code-group), for a

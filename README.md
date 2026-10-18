@@ -37,7 +37,7 @@ A docs site usually goes on with a navbar and a sidebar under `[extra]`, with th
 
 ## How it works
 
-Zola renders markdown with its own markup. The theme's templates rewrite it into VitePress's markup (`templates/vp-markdown.html`, string replacements on what Zola writes), so vpkit's `content.css`, VitePress's own styles for markdown, applies as it is:
+Zola renders markdown with its own markup. The theme's templates rewrite it into VitePress's markup (`templates/vp-markdown.html`, string replacements on what Zola writes), so vpkit's `prose.css`, VitePress's own styles for markdown, applies as it is:
 
 - each code block is wrapped as VitePress's are, in `div.language-<lang>` with the copy button and the language label; highlighted lines become `.line.highlighted`
 - GitHub alerts (`> [!NOTE]` …) take VitePress's custom-block classes and title
@@ -45,7 +45,7 @@ Zola renders markdown with its own markup. The theme's templates rewrite it into
 
 What vpkit cannot style, `css/zola.css` does: Giallo's line numbers, and alerts that stay `<blockquote>`s.
 
-The layout is VitePress's components with vpkit's class names (`vpkit/layout.css`): the templates write the markup VitePress's Vue components render, the outline from Zola's table of contents at build time where VitePress fills it in the browser. What Vue renders only in the browser (the extra menu, the nav screen, the search box) is in the page, hidden or as a template, until the script needs it. `static/vpkit-zola.js` does what those components do on the page, in plain JavaScript: the appearance switch (VueUse's `useDark`, on VitePress's storage key), the flyouts, the navbar's overflow into the extra menu, the nav screen, the sidebar opening over the page on narrow screens, sections collapsing, the outline dropdown, the aside's active heading, the last updated date in the reader's language, the language links keeping the page's hash, the code groups' tabs. The local search's box and index are `static/vpkit-zola-search.js`, loaded when the box first opens, with MiniSearch at the version VitePress uses (`static/vendor/minisearch.js`).
+The layout is VitePress's components with vpkit's class names (`vpkit/docs-theme/layout.css`, on VitePress's variables, `vpkit/docs-theme/vars.css`): the templates write the markup VitePress's Vue components render, the outline from Zola's table of contents at build time where VitePress fills it in the browser. What Vue renders only in the browser (the extra menu, the nav screen, the search box) is in the page, hidden or as a template, until the script needs it. `static/vpkit-zola.js` does what those components do on the page, in plain JavaScript: the appearance switch (VueUse's `useDark`, on VitePress's storage key), the flyouts, the navbar's overflow into the extra menu, the nav screen, the sidebar opening over the page on narrow screens, sections collapsing, the outline dropdown, the aside's active heading, the last updated date in the reader's language, the language links keeping the page's hash, the code groups' tabs. The local search's box and index are `static/vpkit-zola-search.js`, loaded when the box first opens, with MiniSearch at the version VitePress uses (`static/vendor/minisearch.js`).
 
 The social link icons are built into the stylesheet as VitePress generates its `vp-icons.css`, from `@iconify-json/simple-icons` with Iconify's utilities, for the icons `templates/vp-nav.html` lists.
 

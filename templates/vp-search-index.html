@@ -45,7 +45,7 @@
     by an anchored heading) -#}
 {% component vp_search_doc(doc, suffix, site) -%}
 {#- VitePress indexes a <Badge text=…> still a tag: its text is not indexed -#}
-{%- set content = doc.content | regex_replace(pattern=`<span class="vp-badge[^"]*"><!--text-->[^<]*</span>`, rep=``) -%}
+{%- set content = doc.content | regex_replace(pattern=`<span class="vp-badge"(?: data-variant="[a-z]+")?><!--text-->[^<]*</span>`, rep=``) -%}
 {%- set html -%}{{ <vp_markdown html={content} site={site} /> }}{%- endset -%}
 {#- markdown-it ends a code block with a newline, which keeps its last
     word apart from what follows; Giallo's ends without one. (regex_replace:

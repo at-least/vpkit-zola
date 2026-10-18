@@ -21,7 +21,7 @@
 {{ throw(message="vpkit-zola: the toc's entry " ~ entry.id ~ " has no heading with that id") }}
 {%- endif -%}
 {%- set title = heading
-  | regex_replace(pattern=`<span class="vp-badge[^"]*">.*?</span>`, rep=``)
+  | regex_replace(pattern=`<span class="vp-badge"(?: data-variant="[a-z]+")?>.*?</span>`, rep=``)
   | regex_replace(pattern=`<a class="header-anchor".*?</a>`, rep=``)
   | regex_replace(pattern=`<sup class="footnote-reference".*?</sup>`, rep=``)
   | striptags | trim -%}

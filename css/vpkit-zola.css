@@ -6,8 +6,9 @@
 @import "tailwindcss" source(none);
 @import "vpkit/fonts.css";
 @import "vpkit";
-@import "vpkit/icons.css";
-@import "vpkit/layout.css";
-@import "vpkit/content.css";
-@import "vpkit/badge.css";
+@import "vpkit/docs-theme/vars.css";
+@import "vpkit/docs-theme/icons.css";
+@import "vpkit/docs-theme/layout.css";
+@import "vpkit/prose.css";
+@import "vpkit/components/badge/badge.css";
 @import "./zola.css";
