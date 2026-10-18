@@ -1,5 +1,5 @@
-// The demo (demo/, rustpress's documentation converted) builds with the
-// theme, and its pages show none of VitePress's syntax unconverted: no
+// The demo (demo/, the theme's documentation) builds with the theme, and
+// its pages show none of VitePress's syntax as text: no
 // ::: container line, <Badge>, [[toc]], code notation or Tera tag in the
 // text outside code. Every page's <head> but the search index's (a page of
 // data, noindex) ends with the site's head setting, its favicon, the site

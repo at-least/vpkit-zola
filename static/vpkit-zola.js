@@ -73,8 +73,9 @@ function whenTransitionEnds(el, done) {
   setTimeout(end, total + 1);
 }
 
-// composables/scroll-lock.ts: the page stops scrolling while the sidebar or
-// a dropdown is open. lockScroll() returns the unlock for that one lock.
+// composables/scroll-lock.ts: the page stops scrolling while the nav screen,
+// the sidebar, the outline dropdown or the search box is open. lockScroll()
+// returns the unlock for that one lock.
 const isIOS =
   /iP(?:ad|hone|od)/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);

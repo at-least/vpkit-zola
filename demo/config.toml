@@ -1,5 +1,6 @@
 # vpkit-zola's documentation, written for the theme it documents
-# (README.md). zola serve here; base_url is where it would be published.
+# (README.md). zola serve here; base_url is zola serve's address, the one
+# test/demo.mjs expects in each page's head.
 base_url = "http://127.0.0.1:1111"
 title = "vpkit-zola"
 description = "VitePress's look for Zola: a docs theme with no Node.js and no build step."

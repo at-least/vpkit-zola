@@ -1,8 +1,8 @@
 // What static/vpkit-zola.js does, checked in a browser on test/parity-site:
 // each step does what a reader would. The sidebar's, the local nav's and
 // the aside's steps assert what VitePress's components do then; the
-// navbar's and the search box's run on test/vitepress-build (VitePress's
-// build of the same site)
+// navbar's, the search box's, the code group's and the markdown texts' run
+// on test/vitepress-build (VitePress's build of the same site)
 // as well, and what each step leaves (attributes, the focus, the stored
 // appearance) must be the same on both. test/layout.mjs compares how the
 // opened states look.

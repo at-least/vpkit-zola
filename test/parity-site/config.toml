@@ -9,7 +9,8 @@
 # (edit link, last updated) and footer, with a page that sets their
 # options (guide/options.md); a Chinese locale with vitepress.dev's labels
 # (the *.zh.md pages). test/vitepress-site is the same site for
-# VitePress, the reference for the navbar and the footers. The theme comes from the repository:
+# VitePress, the reference for every check but test/layout.mjs's sidebar,
+# local nav and aside ones (vitepress.dev's snapshots). The theme comes from the repository:
 # the tests link it in as themes/vpkit-zola.
 base_url = "https://parity.test"
 title = "VitePress"

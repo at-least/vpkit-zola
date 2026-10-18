@@ -1,6 +1,9 @@
-# The theme's own site: its demo and the pages its checks render. A docs
-# site using the theme needs the [markdown] settings below (the templates
-# refuse to build without them) and `theme = "vpkit-zola"`.
+# The theme's own site: the pages its checks render (the markdown parity
+# page); the documentation is demo/. A docs site using the theme needs the
+# [markdown] settings below but external_links_* (the templates refuse to
+# build without github_alerts, bottom_footnotes, insert_anchor_links =
+# "right", style = "inline" and data_attr_position left at "code", and
+# zola without the two highlighting themes) and `theme = "vpkit-zola"`.
 base_url = "https://at-least.github.io/vpkit-zola"
 title = "vpkit-zola"
 description = "VitePress's look for Zola docs sites, built on vpkit"

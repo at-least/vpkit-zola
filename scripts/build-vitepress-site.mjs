@@ -1,5 +1,6 @@
 // VitePress's build of test/vitepress-site: the reference test/layout.mjs
-// and test/behavior.mjs run next to the theme, scripts and all.
+// and test/behavior.mjs run next to the theme, scripts and all, and the
+// search index test/search.mjs reads.
 // test/vitepress-site is test/parity-site written for VitePress. VitePress
 // builds it at the version vpkit ports (vpkit's test/upstream/SOURCE), from
 // a clone of vuejs/vitepress checked out at that tag, its dependencies
