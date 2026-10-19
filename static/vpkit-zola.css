@@ -1258,11 +1258,11 @@ pre, code, kbd, samp {
       padding: 0 4rem;
     }
   }
-  .vp-doc .VPHomeSponsors, .vp-doc .VPTeamPage {
+  .vp-doc .vp-home-sponsors, .vp-doc .vp-team-page {
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
   }
-  .vp-doc .VPTeamPage a {
+  .vp-doc .vp-team-page a {
     text-decoration: none;
   }
   html:not(.dark) .vp-image.dark {
