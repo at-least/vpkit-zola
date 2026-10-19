@@ -490,6 +490,7 @@
   --vp-duration-slow: 0.5s;
   --vp-focus-ring: 2px solid var(--vp-c-brand);
   --vp-focus-ring-offset: 2px;
+  --vp-focus-ring-inset: -2px;
   --vp-nav-height: 4rem;
   --vp-layout-max-width: 90rem;
   --vp-backdrop-bg-color: rgba(0, 0, 0, 0.6);
