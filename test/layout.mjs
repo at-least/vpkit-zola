@@ -426,18 +426,6 @@ const known = [
     within: 0.25,
     reason: "VitePress's minified CSS rounds line heights to six digits (2.2857143 to 2.28571, 1.3333333 to 1.33333), so each such line (the outline's, the menus', a heading's, the doc footer's, the hero's) is 1/64px shorter there and what follows sits higher, or what is centered on it (the hero image's translate(-50%)) moves; vpkit keeps the source values",
   },
-  {
-    check: /^(nav|home|not found|Chinese)/,
-    element: / > img\[0\]$/,
-    prop: /^vertical-align$/,
-    reason: "Tailwind's preflight gives an img vertical-align: middle where VitePress leaves baseline; the logo is a flex item, which vertical-align does not move",
-  },
-  {
-    check: /^home/,
-    element: /^div\.VPContent > div\[0\] > div\[0\] > div\[0\] > div\[1\] > div\[0\] > img\[1\]$/,
-    prop: /^vertical-align$/,
-    reason: "the same preflight rule on the hero image, which is absolutely positioned: vertical-align does not move it",
-  },
 ];
 
 const fonts = join(ROOT, 'node_modules/vpkit/fonts');
