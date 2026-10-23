@@ -89,7 +89,7 @@ const SIDES = {
 // pages than SIDES', { vitepress, theme }), and require the same result;
 // returns the theme's. known: { reason, strip(result) }, a difference the
 // theme means to have: strip takes it out of both results before they are
-// compared
+// compared, and results already the same fail it as no longer occurring
 async function both(name, options, scenario, known) {
   const { hash = '', pages, ...contextOptions } = options;
   const result = {};
@@ -109,6 +109,7 @@ async function both(name, options, scenario, known) {
   }
   const theme = structuredClone(result.theme);
   if (known) {
+    check(JSON.stringify(result.vitepress) !== JSON.stringify(result.theme), `${name}: known difference no longer occurs, remove it: ${known.reason}`);
     known.strip(result.vitepress);
     known.strip(result.theme);
     console.log(`KNOWN ${name}: ${known.reason}`);
