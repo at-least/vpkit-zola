@@ -3,7 +3,8 @@
 # [markdown] settings below but external_links_* (the templates refuse to
 # build without github_alerts, bottom_footnotes, insert_anchor_links =
 # "right", style = "inline" and data_attr_position left at "code", and
-# zola without the two highlighting themes) and `theme = "vpkit-zola"`.
+# zola without a highlighting theme, one `theme` or the two below) and
+# `theme = "vpkit-zola"`.
 base_url = "https://at-least.github.io/vpkit-zola"
 title = "vpkit-zola"
 description = "VitePress's look for Zola docs sites, built on vpkit"

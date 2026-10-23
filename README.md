@@ -60,7 +60,7 @@ The prebuilt files come from vpkit, a sibling checkout:
 ```sh
 git clone https://github.com/at-least/vpkit ../vpkit
 npm install
-npm run build   # static/vpkit-zola.css and static/fonts/, from css/ and vpkit
+npm run build   # static/vpkit-zola.css, static/fonts/ and static/vendor/, from css/, vpkit and MiniSearch
 npm test        # static/ is up to date, then the browser checks
 zola serve      # this repository's own site: the markdown parity page
 cd demo && zola serve   # the documentation, built with the theme

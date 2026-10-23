@@ -32,8 +32,8 @@
   </div></div>
   {%- endif -%}
   {%- if features | length > 0 -%}
-  {#- VPFeatures's grid: two, three, six (any multiple of three) or four
-      to a row -#}
+  {#- VPFeatures's grid class by the count: 2 and 3 their own, a larger
+      multiple of three 6, any other 4 -#}
   {%- set n = features | length -%}
   {%- set grid = "" if n == 1 else ("vp-features__grid-2 " if n == 2 else ("vp-features__grid-3 " if n == 3 else ("vp-features__grid-6 " if n % 3 == 0 else "vp-features__grid-4 "))) -%}
   <div class="vp-features"><div class="vp-features__container"><ul class="vp-features__items">
